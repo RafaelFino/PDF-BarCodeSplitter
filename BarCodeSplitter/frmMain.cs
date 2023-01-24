@@ -17,13 +17,11 @@ namespace BarCodeSplitter
     public partial class frmMain : Form
     {
         const string CFG_LastDir = "lastDir";
-        private PDFToolKit pdftk = new PDFToolKit();
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public frmMain()
         {
             InitializeComponent();
-
 
             //fill file type combo box
             cmbOutputType.DataSource = Enum.GetValues(typeof(FileTypes));
@@ -38,9 +36,7 @@ namespace BarCodeSplitter
             else
             {
                 txtInput.Text = lastDir;
-            }
-
-            pdftk.LogMessage += OnLog;
+            }           
         }
 
         private void OnLog(object sender, string message)
@@ -128,6 +124,9 @@ namespace BarCodeSplitter
 
         private void Run()
         {
+            var pdftk = new PDFToolKit();
+            pdftk.LogMessage += OnLog;
+
             if (Directory.Exists(txtInput.Text))
             {
                 foreach (var item in Directory.GetFiles(txtInput.Text, "*.pdf"))
@@ -135,7 +134,7 @@ namespace BarCodeSplitter
                     FileTypes fileType;
                     Enum.TryParse<FileTypes>(cmbOutputType.SelectedValue.ToString(), out fileType);
 
-                    RunFile(item, fileType);
+                    RunFile(pdftk, item, fileType);
                 }
             }
             else
@@ -144,11 +143,11 @@ namespace BarCodeSplitter
             }
         }
 
-        private PDFFile RunFile(string item, FileTypes fileType)
+        private PDFFile RunFile(PDFToolKit pdftk, string item, FileTypes fileType)
         {
             logMessage($"Reading {item} from txtInput.Text - Using {fileType}", LogTypes.Info);
 
-            var output = $"{txtInput.Text}\\output\\";
+            var output = $"{txtInput.Text}\\output";
             if (!Directory.Exists(output))
             {
                 logMessage($"Creating {output} directory to output files", LogTypes.Debug);
@@ -260,8 +259,8 @@ namespace BarCodeSplitter
                 File.Delete(destiny);
             }
 
-            logMessage($"[{fileType}] Delivering {source}  to {destiny}", LogTypes.Info);
-            File.Copy(source, destiny);
+            logMessage($"[{fileType}] Delivering {Path.GetFileName(source)}  to {destiny}", LogTypes.Info);
+            File.Move(source, destiny);
         }
 
         private void txtInput_Click(object sender, EventArgs e)

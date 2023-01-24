@@ -32,7 +32,7 @@ namespace BarCodeSplitter.lib
 
             try
             {
-                foreach (var item in Split(filename, $"{outputPath}\\tmp"))
+                foreach (var item in Split(filename, $"{Path.GetTempPath()}PDFBarCodeSplitter"))
                 {
                     var page = new PDFPage() {  PageFile = item.Value, PageNumber = item.Key };
 
@@ -155,7 +155,7 @@ namespace BarCodeSplitter.lib
         {
             var jsonString = JsonConvert.SerializeObject(data, Formatting.Indented, _options);
             OnLogMessage($"[CreateSummary] Data: {jsonString}");
-            File.WriteAllText($"{Path.GetDirectoryName(outputPath)}\\{Path.GetFileNameWithoutExtension(data.FileSource)}.json", jsonString);
+            File.WriteAllText($"{outputPath}\\{Path.GetFileNameWithoutExtension(data.FileSource)}.json", jsonString);
         }
 
         private IEnumerable<string> ExtractText(string filename)
