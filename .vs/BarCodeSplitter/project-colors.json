@@ -1,0 +1,16 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "f74d9253-24d5-4c42-8037-9fa2b147eef0": {
+      "ProjectGuid": "f74d9253-24d5-4c42-8037-9fa2b147eef0",
+      "DisplayName": "BarCodeSplitter",
+      "ColorIndex": 0
+    },
+    "2b0bb212-ceab-422b-b765-9264b859bc0c": {
+      "ProjectGuid": "2b0bb212-ceab-422b-b765-9264b859bc0c",
+      "DisplayName": "Solution Items",
+      "ColorIndex": 1
+    }
+  },
+  "NextColorIndex": 2
+}

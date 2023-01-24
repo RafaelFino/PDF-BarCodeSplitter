@@ -1,6 +1,8 @@
 ﻿using ImageMagick;
 using Newtonsoft.Json;
 using PdfSharp.Pdf;
+using PdfSharp.Pdf.Content;
+using PdfSharp.Pdf.Content.Objects;
 using PdfSharp.Pdf.IO;
 using System;
 using System.Collections.Concurrent;
@@ -23,32 +25,44 @@ namespace BarCodeSplitter.lib
             LogMessage?.Invoke(this, $"[PDFToolKit] {message}");
         }
 
-        public BarCodeSummary Run(string filename, string outputPath)
+        public PDFFile Analyze(string filename, string outputPath, PDFAnalyzeConfig config)
         {
             var sw = Stopwatch.StartNew();
-            var ret = new BarCodeSummary { FileSource = filename, Codes = new ConcurrentBag<BarCode>() };
-            
+            var ret = new PDFFile { FileSource = filename, Pages = new ConcurrentBag<PDFPage>() };
+
             try
             {
-                foreach (var item in Split(filename, outputPath))
+                foreach (var item in Split(filename, $"{outputPath}\\tmp"))
                 {
-                    OnLogMessage($"[Run] Analysing {item.Value}");
-                    var result = Recognize(item.Value, item.Key);
+                    var page = new PDFPage() {  PageFile = item.Value, PageNumber = item.Key };
 
-                    if (result != null)
+                    if (config.FindBarCode)
                     {
-                        ret.Codes.Add(result);
+                        OnLogMessage($"[Analyze] Searching for a bar code {page.PageFile}");
+                        page.Code = FindBarCode(page.PageFile, page.PageNumber);
                     }
+
+                    if (config.GetAllText)
+                    {
+                        OnLogMessage($"[Analyze] Trying to extractg text from {page.PageFile}");
+                        page.Text = ExtractText(page.PageFile);
+                    }
+
+                    ret.Pages.Add(page);    
                 };
 
-                sw.Stop();
-                ret.ElaspedTime = sw.ElapsedMilliseconds;
+                if (config.MakeJsonReport)
+                {
+                    OnLogMessage($"[Analyze] Creating JSON Report for {filename}");
+                    CreateSummary(ret, outputPath);
+                }
 
-                CreateSummary(ret);
+                sw.Stop();
+                ret.ProcessElaspedTime = sw.ElapsedMilliseconds;
             }
             catch (Exception ex)
             {
-                OnLogMessage($"[Run] ERROR {ex.Message}\n Stack: {ex.ToString()}");
+                OnLogMessage($"[Analyze] ERROR {ex.Message}\n Stack: {ex.ToString()}");
             }
 
             return ret;
@@ -84,9 +98,9 @@ namespace BarCodeSplitter.lib
                     Directory.CreateDirectory($"{outputPath}\\{name}");
                 }
 
-                var newPage = $"{outputPath}\\{name}\\page {idx + 1}-{inputDocument.PageCount}.pdf";
+                var newPage = $"{outputPath}\\{name}\\{name} - page {idx + 1}-{inputDocument.PageCount}.pdf";
 
-                OnLogMessage($"Split: Creating page file {idx + 1} from {Path.GetFileNameWithoutExtension(filename)}");
+                OnLogMessage($"[Split] Creating page file {idx + 1} from {Path.GetFileNameWithoutExtension(filename)}");
 
                 outputDocument.Save(newPage);
 
@@ -96,24 +110,7 @@ namespace BarCodeSplitter.lib
             return ret;
         }
 
-        private Tuple<string, string> FindBarCode(string filename)
-        {
-            IBarcodeReader reader = new BarcodeReader();
-            {
-                using (var barcodeBitmap = (Bitmap)Image.FromFile(filename))
-                {
-                    var result = reader.Decode(barcodeBitmap);
-
-                    if (result != null)
-                    {
-                        return new Tuple<string, string>(result.BarcodeFormat.ToString(), result.Text);
-                    }
-                }
-            }
-            return null;
-        }
-
-        private BarCode Recognize(string pageFile, int page)
+        private BarCode FindBarCode(string pageFile, int page)
         {
             var sw = Stopwatch.StartNew();
             BarCode ret = null;
@@ -123,35 +120,30 @@ namespace BarCodeSplitter.lib
             {
                 image.Write(pngFile);
 
-                var result = FindBarCode(pngFile);
+                IBarcodeReader reader = new BarcodeReader();
+                using (var barcodeBitmap = (Bitmap)Image.FromFile(pngFile))
+                {
+                    var result = reader.Decode(barcodeBitmap);
 
-                if (result != null)
-                {
-                    sw.Stop();
-                    OnLogMessage($"[Recognize] Found codes on {pageFile}-> Code: {result.Item1} Value: {result.Item2}");
-                    ret = new BarCode
+                    if (result != null)
                     {
-                        CodeType = result.Item1,
-                        Value = result.Item2,
-                        PageFile = pageFile,
-                        PageCount = page,
-                        ElapsedTimePerPage = sw.ElapsedMilliseconds
-                    };
-                } 
-                else
-                {
-                    if (File.Exists(pageFile))
-                    {
-                        OnLogMessage($"[Recognize] Removing PDF without BAR CODE {pageFile}");
-                        File.Delete(pageFile);  
+                        sw.Stop();
+                        ret = new BarCode
+                        {
+                            CodeType = result.BarcodeFormat.ToString(),
+                            Value = result.Text,
+                            ProcessElapsedTime = sw.ElapsedMilliseconds
+                        };
+
+                        OnLogMessage($"[FindBarCode] Found codes on {pageFile}-> Code: {ret.CodeType} Value: {ret.Value}");
                     }
                 }
-            }
 
-            if(File.Exists(pngFile))
-            {
-                OnLogMessage($"[Recognize] Removing temp file {pngFile}");
-                File.Delete(pngFile);
+                if (File.Exists(pngFile))
+                {
+                    OnLogMessage($"[FindBarCode] Removing temp file {pngFile}");
+                    File.Delete(pngFile);
+                }
             }
 
             return ret;
@@ -159,11 +151,58 @@ namespace BarCodeSplitter.lib
 
         private static readonly JsonSerializerSettings _options = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
 
-        private void CreateSummary(BarCodeSummary data)
+        private void CreateSummary(PDFFile data, string outputPath)
         {
             var jsonString = JsonConvert.SerializeObject(data, Formatting.Indented, _options);
             OnLogMessage($"[CreateSummary] Data: {jsonString}");
-            File.WriteAllText($"{Path.GetDirectoryName(data.FileSource)}\\{Path.GetFileNameWithoutExtension(data.FileSource)}.json", jsonString);
+            File.WriteAllText($"{Path.GetDirectoryName(outputPath)}\\{Path.GetFileNameWithoutExtension(data.FileSource)}.json", jsonString);
+        }
+
+        private IEnumerable<string> ExtractText(string filename)
+        {
+            var ret = new List<string>();
+            PdfDocument doc = PdfReader.Open(filename, PdfDocumentOpenMode.Import);
+
+            foreach (var page in doc.Pages)
+            {
+                ret.AddRange(ExtractText(page));
+            }
+
+            return ret;
+        }
+
+        private IEnumerable<string> ExtractText(PdfPage page)
+        {
+            var content = ContentReader.ReadContent(page);
+            var text = ExtractText(content);
+            return text;
+        }
+
+        private IEnumerable<string> ExtractText(CObject cObject)
+        {
+            if (cObject is COperator)
+            {
+                var cOperator = cObject as COperator;
+                if (cOperator.OpCode.Name == OpCodeName.Tj.ToString() ||
+                    cOperator.OpCode.Name == OpCodeName.TJ.ToString())
+                {
+                    foreach (var cOperand in cOperator.Operands)
+                        foreach (var txt in ExtractText(cOperand))
+                            yield return txt;
+                }
+            }
+            else if (cObject is CSequence)
+            {
+                var cSequence = cObject as CSequence;
+                foreach (var element in cSequence)
+                    foreach (var txt in ExtractText(element))
+                        yield return txt;
+            }
+            else if (cObject is CString)
+            {
+                var cString = cObject as CString;
+                yield return cString.Value;
+            }
         }
     }
 }

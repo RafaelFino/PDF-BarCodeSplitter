@@ -1,8 +1,19 @@
 ﻿# PDF - BarCodeSplitter
 
+## Rules
+This software needs to split every page on input Invoice files by types, and each must be delivered on diferent folders:
+- Thermal
+- Paper
+
+### FedEX
+Pages with barcodes are Thermal types
+
+### UPS
+Pages with text "invoice" are paper type
+
 ## Nuget Deps
 - [Magick.Net](https://github.com/dlemstra/Magick.NET): To Tranform PDF into PNG files (Depends on GhostScript)
-- [ZXing.net](https://www.nuget.org/packages/ZXing.Net/): To Recognize bardcodes on PNG files
+- [ZXing.net](https://www.nuget.org/packages/ZXing.Net/): To Recognize barcodes on PNG files
 - [PDFSharp](http://www.pdfsharp.net/NuGetPackage_PDFsharp-MigraDoc-gdi.ashx): To split PDF
 
 ## Lib Deps

@@ -23,15 +23,10 @@ namespace BarCodeSplitter
         public frmMain()
         {
             InitializeComponent();
-            
+
 
             //fill file type combo box
-            foreach (var item in Enum.GetValues(typeof(FileTypes)))
-            {
-                logMessage($"Add item {item} to FileType Combo Box");
-                cmbOutputType.Items.Add(item);
-            }
-
+            cmbOutputType.DataSource = Enum.GetValues(typeof(FileTypes));
             cmbOutputType.SelectedIndex = 0;
 
             var lastDir = ConfigurationManager.AppSettings.Get(CFG_LastDir);
@@ -45,7 +40,7 @@ namespace BarCodeSplitter
                 txtInput.Text = lastDir;
             }
 
-            pdftk.LogMessage += OnLog;            
+            pdftk.LogMessage += OnLog;
         }
 
         private void OnLog(object sender, string message)
@@ -88,7 +83,7 @@ namespace BarCodeSplitter
                     {
                         _logger.Info(message);
                         break;
-                    }           
+                    }
             }
         }
 
@@ -128,27 +123,145 @@ namespace BarCodeSplitter
 
         private void btnRun_Click(object sender, EventArgs e)
         {
+            Run();
+        }
+
+        private void Run()
+        {
             if (Directory.Exists(txtInput.Text))
             {
                 foreach (var item in Directory.GetFiles(txtInput.Text, "*.pdf"))
                 {
-                    logMessage($"Reading {item} from txtInput.Text", LogTypes.Info);
-                    var output = $"{txtInput.Text}\\output";
-                    if (!Directory.Exists(output))
-                    {
-                        logMessage($"Creating {output} directory to output files", LogTypes.Debug);
-                        Directory.CreateDirectory(output);
-                    }
-                    pdftk.Run(item, output);
+                    FileTypes fileType;
+                    Enum.TryParse<FileTypes>(cmbOutputType.SelectedValue.ToString(), out fileType);
 
-                    logMessage($"Done for {item}", LogTypes.Info);
+                    RunFile(item, fileType);
                 }
             }
             else
             {
                 logMessage($"{txtInput.Text} is an invalid path", LogTypes.Error);
             }
+        }
 
+        private PDFFile RunFile(string item, FileTypes fileType)
+        {
+            logMessage($"Reading {item} from txtInput.Text - Using {fileType}", LogTypes.Info);
+
+            var output = $"{txtInput.Text}\\output\\";
+            if (!Directory.Exists(output))
+            {
+                logMessage($"Creating {output} directory to output files", LogTypes.Debug);
+                Directory.CreateDirectory(output);
+            }
+
+            var result = pdftk.Analyze(item, output, CreateConfig(fileType));
+
+            ProcessResult(result, fileType, $"{output}\\{fileType}");
+
+            logMessage($"Done for {item}", LogTypes.Info);
+
+            return result;
+        }
+
+        private void ProcessResult(PDFFile result, FileTypes fileType, string output)
+        {
+            var outputThermal = $"{output}\\thermal";
+            if (!Directory.Exists(outputThermal))
+            {
+                logMessage($"Creating {outputThermal} directory to output thermal files", LogTypes.Debug);
+                Directory.CreateDirectory(outputThermal);
+            }
+
+            var outputPaper = $"{output}\\paper";
+            if (!Directory.Exists(outputPaper))
+            {
+                logMessage($"Creating {outputPaper} directory to output paper files", LogTypes.Debug);
+                Directory.CreateDirectory(outputPaper);
+            }
+
+            switch (fileType)
+            {
+                case FileTypes.FedEx:
+                    {
+                        foreach (var page in result.Pages)
+                            ProcessFedEX(fileType, outputThermal, outputPaper, page);
+                        break;
+                    }
+                case FileTypes.UPS:
+                    {
+                        foreach (var page in result.Pages)
+                            ProcessUPS(fileType, outputThermal, outputPaper, page);
+                        break;
+                    }
+            }
+        }
+
+        private PDFAnalyzeConfig CreateConfig(FileTypes fileType)
+        {
+            var config = new PDFAnalyzeConfig() { MakeJsonReport = true };
+
+            switch (fileType)
+            {
+                case FileTypes.FedEx:
+                    {
+                        config.FindBarCode = true;
+                        config.GetAllText = false;
+                        break;
+                    }
+                case FileTypes.UPS:
+                    {
+                        config.FindBarCode = false;
+                        config.GetAllText = true;
+                        break;
+                    }
+            }
+
+            return config;
+        }
+
+        private void ProcessUPS(FileTypes fileType, string outputThermal, string outputPaper, PDFPage page)
+        {
+            if (!string.Join("", page.Text).ToUpper().Contains("INVOICE"))
+            {
+                logMessage($"[{fileType}] {page.PageFile} is THERMAL", LogTypes.Debug);
+                MovePDF(page.PageFile, $"{outputThermal}\\{Path.GetFileName(page.PageFile)}", false, fileType);
+            }
+            else
+            {
+                logMessage($"[{fileType}] {page.PageFile} is PAPER", LogTypes.Debug);
+                MovePDF(page.PageFile, $"{outputPaper}\\{Path.GetFileName(page.PageFile)}", false, fileType);
+            }
+        }
+
+        private void ProcessFedEX(FileTypes fileType, string outputThermal, string outputPaper, PDFPage page)
+        {
+            if (page.Code != null)
+            {
+                logMessage($"[{fileType}] {page.PageFile} is THERMAL", LogTypes.Debug);
+                MovePDF(page.PageFile, $"{outputThermal}\\{Path.GetFileName(page.PageFile)}", false, fileType);
+            }
+            else
+            {
+                logMessage($"[{fileType}] {page.PageFile} is PAPER", LogTypes.Debug);
+                MovePDF(page.PageFile, $"{outputPaper}\\{Path.GetFileName(page.PageFile)}", false, fileType);
+            }
+        }
+
+        private void MovePDF(string source, string destiny, bool overridde, FileTypes fileType)
+        {
+            if (File.Exists(destiny))
+            {
+                if (overridde)
+                {
+                    logMessage($"[{fileType}] {destiny} already exists, ignoring", LogTypes.Info);
+                    return;
+                }
+                File.Delete(destiny);
+            }
+
+            logMessage($"[{fileType}] Delivering {source}  to {destiny}", LogTypes.Info);
+            File.Copy(source, destiny);
         }
 
         private void txtInput_Click(object sender, EventArgs e)
