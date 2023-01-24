@@ -1,0 +1,310 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F74D9253-24D5-4C42-8037-9FA2B147EEF0}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>BarCodeSplitter</RootNamespace>
+    <AssemblyName>BarCodeSplitter</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>BarCodeSplitter.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Google.Protobuf, Version=3.21.12.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Protobuf.3.21.12\lib\net45\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Art, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.ART.WPF.25.2.0\lib\net20\ImageGear.Art.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Art.Forms, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.ART.WinForms.25.2.0\lib\net20\ImageGear.Art.Forms.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Art.Windows.Controls, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.ART.WPF.25.2.0\lib\net20\ImageGear.Art.Windows.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Barcode, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Barcode.25.2.0\lib\net20\ImageGear.Barcode.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Comparison, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.PDF.25.2.0\lib\net20\ImageGear.Comparison.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Core, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Core.25.2.0\lib\net20\ImageGear.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Dicom.Forms, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Medical.WinForms.25.2.0\lib\net20\ImageGear.Dicom.Forms.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Evaluation, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Core.25.2.0\lib\net20\ImageGear.Evaluation.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Formats.Advanced, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Formats.Advanced.25.2.0\lib\net20\ImageGear.Formats.Advanced.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Formats.CameraRaw, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.CameraRaw.25.2.0\lib\net20\ImageGear.Formats.CameraRaw.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Formats.Common, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Core.25.2.0\lib\net20\ImageGear.Formats.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Formats.Dicom, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Medical.WPF.25.2.0\lib\net20\ImageGear.Formats.Dicom.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Formats.Jpeg2k, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Jpeg2k.25.2.0\lib\net20\ImageGear.Formats.Jpeg2k.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Formats.Office, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Office.25.2.0\lib\net20\ImageGear.Formats.Office.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Formats.Pdf, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.PDF.25.2.0\lib\net20\ImageGear.Formats.Pdf.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Formats.SimplifiedMetadata, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Core.25.2.0\lib\net20\ImageGear.Formats.SimplifiedMetadata.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Formats.Vector, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Vector.25.2.0\lib\net20\ImageGear.Formats.Vector.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.OCR, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Recognition.25.2.0\lib\net20\ImageGear.OCR.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.OCR.Forms, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Recognition.25.2.0\lib\net20\ImageGear.OCR.Forms.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Presentation, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.WPF.25.2.0\lib\net20\ImageGear.Presentation.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Processing.Advanced, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.AdvancedProcessing.25.2.0\lib\net20\ImageGear.Processing.Advanced.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Twain, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.TWAIN.25.2.0\lib\net20\ImageGear.Twain.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Web, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Web.25.2.0\lib\net20\ImageGear.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Web.ImageDataProcessor, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Web.25.2.0\lib\net20\ImageGear.Web.ImageDataProcessor.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Web.Services, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Web.25.2.0\lib\net20\ImageGear.Web.Services.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Windows.Controls, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.WPF.25.2.0\lib\net20\ImageGear.Windows.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Windows.Controls.Art, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.ART.WPF.25.2.0\lib\net20\ImageGear.Windows.Controls.Art.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Windows.Controls.Dicom, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.Medical.WPF.25.2.0\lib\net20\ImageGear.Windows.Controls.Dicom.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Windows.Forms, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.WinForms.25.2.0\lib\net20\ImageGear.Windows.Forms.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageGear.Wpf, Version=25.2.0.2647, Culture=neutral, PublicKeyToken=80d669b8b606a2da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accusoft.ImageGear.WPF.25.2.0\lib\net20\ImageGear.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=2.0.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.15\lib\net45\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Magick.NET-Q16-AnyCPU, Version=12.2.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
+      <HintPath>..\packages\Magick.NET-Q16-AnyCPU.12.2.2\lib\netstandard20\Magick.NET-Q16-AnyCPU.dll</HintPath>
+    </Reference>
+    <Reference Include="Magick.NET.Core, Version=12.2.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
+      <HintPath>..\packages\Magick.NET.Core.12.2.2\lib\netstandard20\Magick.NET.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="MigraDoc.DocumentObjectModel-gdi, Version=1.51.5186.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\PDFsharp-MigraDoc-gdi.1.51.5186-beta\lib\net20\MigraDoc.DocumentObjectModel-gdi.dll</HintPath>
+    </Reference>
+    <Reference Include="MigraDoc.Rendering-gdi, Version=1.51.5186.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\PDFsharp-MigraDoc-gdi.1.51.5186-beta\lib\net20\MigraDoc.Rendering-gdi.dll</HintPath>
+    </Reference>
+    <Reference Include="MigraDoc.RtfRendering-gdi, Version=1.51.5186.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\PDFsharp-MigraDoc-gdi.1.51.5186-beta\lib\net20\MigraDoc.RtfRendering-gdi.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PdfSharp-gdi, Version=1.51.5185.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\PDFsharp-MigraDoc-gdi.1.51.5186-beta\lib\net20\PdfSharp-gdi.dll</HintPath>
+    </Reference>
+    <Reference Include="PdfSharp.Charting-gdi, Version=1.51.5185.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\PDFsharp-MigraDoc-gdi.1.51.5186-beta\lib\net20\PdfSharp.Charting-gdi.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.ConfigurationManager, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Configuration.ConfigurationManager.7.0.0\lib\net462\System.Configuration.ConfigurationManager.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.OracleClient" />
+    <Reference Include="System.Drawing.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Drawing.Common.7.0.0\lib\net462\System.Drawing.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.7.0.0-preview.2.22152.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security" />
+    <Reference Include="System.Security.AccessControl, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.AccessControl.6.0.2-mauipre.1.22102.15\lib\net461\System.Security.AccessControl.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Permissions, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Permissions.7.0.0\lib\net462\System.Security.Permissions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Principal.Windows, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Principal.Windows.6.0.0-preview.5.21301.5\lib\net461\System.Security.Principal.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="zxing, Version=0.16.8.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZXing.Net.0.16.8\lib\net48\zxing.dll</HintPath>
+    </Reference>
+    <Reference Include="zxing.presentation, Version=0.16.8.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZXing.Net.0.16.8\lib\net48\zxing.presentation.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="frmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMain.Designer.cs">
+      <DependentUpon>frmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="lib\entities\BarCode.cs" />
+    <Compile Include="lib\entities\BarCodeSummary.cs" />
+    <Compile Include="lib\pdftk.cs" />
+    <Compile Include="lib\entities\LogTypes.cs" />
+    <Compile Include="lib\entities\FileTypes.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="frmMain.resx">
+      <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="log4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <None Include="readme.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="input\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="HTML5Viewer\ViewerControl\css\viewercontrol.css" />
+    <Content Include="HTML5Viewer\ViewerControl\js\viewercontrol.js" />
+    <Content Include="HTML5Viewer\Viewer\css\viewer.css" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearFirstPage.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearGoToPage.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearLastPage.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearNextPage.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearPrevPage.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearRotateDoc.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearRotatePage.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearViewer.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearViewer.Util.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearZoomIn.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearZoomOut.js" />
+    <Content Include="HTML5Viewer\Viewer\js\ImGearZoomSelect.js" />
+    <Content Include="HTML5Viewer\Viewer\js\viewer.min.js" />
+    <Content Include="Scripts\ImGearClientArt.js" />
+    <Content Include="Scripts\ImGearClientViewer.js" />
+    <Content Include="Scripts\ImGearCore.js" />
+    <Content Include="Scripts\ImGearIsis.js" />
+    <Content Include="Scripts\ImGearPlugins.js" />
+    <Content Include="Scripts\ImGearThumbnailList.js" />    
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\Pdfium.Net.SDK.4.78.2704\build\Pdfium.Net.SDK.targets" Condition="Exists('..\packages\Pdfium.Net.SDK.4.78.2704\build\Pdfium.Net.SDK.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Este projeto faz referência a pacotes do NuGet que não estão presentes neste computador. Use a Restauração de Pacotes do NuGet para baixá-los.  Para obter mais informações, consulte http://go.microsoft.com/fwlink/?LinkID=322105. O arquivo ausente é {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Accusoft.ImageGear.Core.25.2.0\build\Accusoft.ImageGear.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Accusoft.ImageGear.Core.25.2.0\build\Accusoft.ImageGear.Core.targets'))" />
+    <Error Condition="!Exists('..\packages\Accusoft.ImageGear.AdvancedProcessing.25.2.0\build\Accusoft.ImageGear.AdvancedProcessing.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Accusoft.ImageGear.AdvancedProcessing.25.2.0\build\Accusoft.ImageGear.AdvancedProcessing.targets'))" />
+    <Error Condition="!Exists('..\packages\Accusoft.ImageGear.Jpeg2k.25.2.0\build\Accusoft.ImageGear.Jpeg2k.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Accusoft.ImageGear.Jpeg2k.25.2.0\build\Accusoft.ImageGear.Jpeg2k.targets'))" />
+    <Error Condition="!Exists('..\packages\Accusoft.ImageGear.Vector.25.2.0\build\Accusoft.ImageGear.Vector.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Accusoft.ImageGear.Vector.25.2.0\build\Accusoft.ImageGear.Vector.targets'))" />
+    <Error Condition="!Exists('..\packages\Accusoft.ImageGear.PDF.25.2.0\build\Accusoft.ImageGear.PDF.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Accusoft.ImageGear.PDF.25.2.0\build\Accusoft.ImageGear.PDF.targets'))" />
+    <Error Condition="!Exists('..\packages\Accusoft.ImageGear.Recognition.25.2.0\build\Accusoft.ImageGear.Recognition.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Accusoft.ImageGear.Recognition.25.2.0\build\Accusoft.ImageGear.Recognition.targets'))" />
+    <Error Condition="!Exists('..\packages\Accusoft.ImageGear.Recognition.Asian.25.2.0\build\Accusoft.ImageGear.Recognition.Asian.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Accusoft.ImageGear.Recognition.Asian.25.2.0\build\Accusoft.ImageGear.Recognition.Asian.targets'))" />
+    <Error Condition="!Exists('..\packages\Magick.NET-Q16-AnyCPU.12.2.2\build\netstandard20\Magick.NET-Q16-AnyCPU.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Magick.NET-Q16-AnyCPU.12.2.2\build\netstandard20\Magick.NET-Q16-AnyCPU.targets'))" />
+  </Target>
+  <Import Project="..\packages\Accusoft.ImageGear.Core.25.2.0\build\Accusoft.ImageGear.Core.targets" Condition="Exists('..\packages\Accusoft.ImageGear.Core.25.2.0\build\Accusoft.ImageGear.Core.targets')" />
+  <Import Project="..\packages\Accusoft.ImageGear.AdvancedProcessing.25.2.0\build\Accusoft.ImageGear.AdvancedProcessing.targets" Condition="Exists('..\packages\Accusoft.ImageGear.AdvancedProcessing.25.2.0\build\Accusoft.ImageGear.AdvancedProcessing.targets')" />
+  <Import Project="..\packages\Accusoft.ImageGear.Jpeg2k.25.2.0\build\Accusoft.ImageGear.Jpeg2k.targets" Condition="Exists('..\packages\Accusoft.ImageGear.Jpeg2k.25.2.0\build\Accusoft.ImageGear.Jpeg2k.targets')" />
+  <Import Project="..\packages\Accusoft.ImageGear.Vector.25.2.0\build\Accusoft.ImageGear.Vector.targets" Condition="Exists('..\packages\Accusoft.ImageGear.Vector.25.2.0\build\Accusoft.ImageGear.Vector.targets')" />
+  <Import Project="..\packages\Accusoft.ImageGear.PDF.25.2.0\build\Accusoft.ImageGear.PDF.targets" Condition="Exists('..\packages\Accusoft.ImageGear.PDF.25.2.0\build\Accusoft.ImageGear.PDF.targets')" />
+  <Import Project="..\packages\Accusoft.ImageGear.Recognition.25.2.0\build\Accusoft.ImageGear.Recognition.targets" Condition="Exists('..\packages\Accusoft.ImageGear.Recognition.25.2.0\build\Accusoft.ImageGear.Recognition.targets')" />
+  <Import Project="..\packages\Accusoft.ImageGear.Recognition.Asian.25.2.0\build\Accusoft.ImageGear.Recognition.Asian.targets" Condition="Exists('..\packages\Accusoft.ImageGear.Recognition.Asian.25.2.0\build\Accusoft.ImageGear.Recognition.Asian.targets')" />
+  <Import Project="..\packages\Magick.NET-Q16-AnyCPU.12.2.2\build\netstandard20\Magick.NET-Q16-AnyCPU.targets" Condition="Exists('..\packages\Magick.NET-Q16-AnyCPU.12.2.2\build\netstandard20\Magick.NET-Q16-AnyCPU.targets')" />
+</Project>
