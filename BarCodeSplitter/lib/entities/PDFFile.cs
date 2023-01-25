@@ -24,10 +24,7 @@ namespace BarCodeSplitter.lib
                 {
                     foreach (var page in Pages)
                     {
-                        if (page.Text != null)
-                        {
-                            ret.AddRange(page.Text);
-                        }
+                        ret.Add(page.Text);
                     }
                 }
                 return ret;

@@ -14,4 +14,10 @@ namespace BarCodeSplitter.lib.entities
         Error = 3,
         Fatal = 4,  
     }
+
+    public class LogMsg
+    {
+        public LogTypes Type { get; set; }  
+        public string Message { get; set; } 
+    }
 }

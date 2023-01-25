@@ -17,7 +17,11 @@ namespace BarCodeSplitter
     public partial class frmMain : Form
     {
         const string CFG_LastDir = "lastDir";
+        const string CFG_EnableDebug = "enableDebug";
+
+        private bool _enableDebug = true;
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private DeliveryService _delivery = new DeliveryService();
 
         public frmMain()
         {
@@ -26,6 +30,14 @@ namespace BarCodeSplitter
             //fill file type combo box
             cmbOutputType.DataSource = Enum.GetValues(typeof(FileTypes));
             cmbOutputType.SelectedIndex = 0;
+
+            if (ConfigurationManager.AppSettings.AllKeys.Contains(CFG_EnableDebug))
+            {
+                var enableDebugValue = ConfigurationManager.AppSettings.Get(CFG_EnableDebug);
+
+                _enableDebug = Convert.ToBoolean(enableDebugValue);
+            }
+
 
             var lastDir = ConfigurationManager.AppSettings.Get(CFG_LastDir);
 
@@ -36,31 +48,26 @@ namespace BarCodeSplitter
             else
             {
                 txtInput.Text = lastDir;
-            }           
+            }
+
+            _delivery.Pdftk.LogMessage += OnLog;
+            _delivery.LogMessage += OnLog;
         }
 
+        private void OnLog(object sender, LogMsg msg)
+        {
+            LogMessage(msg.Message, msg.Type);
+        }
         private void OnLog(object sender, string message)
         {
-            logMessage(message, LogTypes.Debug);
+            LogMessage(message, LogTypes.Debug);
         }
 
-        private void logMessage(string message, LogTypes logType = LogTypes.Info)
+        private void LogMessage(string message, LogTypes logType = LogTypes.Info)
         {
-            var fmtMsg = $"[{DateTime.Now}] [{logType}] {message}{Environment.NewLine}";
-            if (txtLog.InvokeRequired)
+            if (!_enableDebug && logType == LogTypes.Debug)
             {
-                txtLog.Invoke((MethodInvoker)delegate
-                {
-                    txtLog.AppendText(fmtMsg);
-                    txtLog.SelectionStart = txtLog.Text.Length;
-                    txtLog.SelectionLength = 0;
-                });
-            }
-            else
-            {
-                txtLog.AppendText(fmtMsg);
-                txtLog.SelectionStart = txtLog.Text.Length;
-                txtLog.SelectionLength = 0;
+                return;
             }
 
             switch (logType)
@@ -81,6 +88,24 @@ namespace BarCodeSplitter
                         break;
                     }
             }
+
+            var fmtMsg = $"[{DateTime.Now}] [{logType}] {message}{Environment.NewLine}";
+            if (txtLog.InvokeRequired)
+            {
+                txtLog.Invoke((MethodInvoker)delegate
+                {
+                    txtLog.AppendText(fmtMsg);
+                    txtLog.SelectionStart = txtLog.Text.Length;
+                    txtLog.SelectionLength = 0;
+                });
+            }
+            else
+            {
+                txtLog.AppendText(fmtMsg);
+                txtLog.SelectionStart = txtLog.Text.Length;
+                txtLog.SelectionLength = 0;
+            }
+
         }
 
         private void AddUpdateAppSettings(string key, string value)
@@ -93,14 +118,13 @@ namespace BarCodeSplitter
                 if (settings[key] == null)
                 {
                     settings.Add(key, value);
-                    logMessage($"App.Config updated: NewValue [{key}:{value}]", LogTypes.Debug);
+                    LogMessage($"App.Config updated: NewValue [{key}:{value}]", LogTypes.Debug);
                 }
                 else
                 {
                     if (settings[key].Value != value)
                     {
                         settings[key].Value = value;
-                        logMessage($"App.Config updated: [{key}:{value}]", LogTypes.Debug);
                     }
                     else
                     {
@@ -109,24 +133,17 @@ namespace BarCodeSplitter
                 }
                 configFile.Save(ConfigurationSaveMode.Modified);
                 ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
-                logMessage($"App.Config updated [{key}:{value}]", LogTypes.Debug);
+                LogMessage($"App.Config updated [{key}:{value}]", LogTypes.Debug);
             }
             catch (ConfigurationErrorsException)
             {
-                logMessage($"Error writing app settings [{key}:{value}]", LogTypes.Error);
+                LogMessage($"Error writing app settings [{key}:{value}]", LogTypes.Error);
             }
         }
 
         private void btnRun_Click(object sender, EventArgs e)
         {
-            Run();
-        }
-
-        private void Run()
-        {
-            var pdftk = new PDFToolKit();
-            pdftk.LogMessage += OnLog;
-
+            LogMessage($"Starting...", LogTypes.Info);
             if (Directory.Exists(txtInput.Text))
             {
                 foreach (var item in Directory.GetFiles(txtInput.Text, "*.pdf"))
@@ -134,133 +151,15 @@ namespace BarCodeSplitter
                     FileTypes fileType;
                     Enum.TryParse<FileTypes>(cmbOutputType.SelectedValue.ToString(), out fileType);
 
-                    RunFile(pdftk, item, fileType);
+                    _delivery.RunFile(txtInput.Text, item, fileType);
                 }
             }
             else
             {
-                logMessage($"{txtInput.Text} is an invalid path", LogTypes.Error);
-            }
-        }
-
-        private PDFFile RunFile(PDFToolKit pdftk, string item, FileTypes fileType)
-        {
-            logMessage($"Reading {item} from txtInput.Text - Using {fileType}", LogTypes.Info);
-
-            var output = $"{txtInput.Text}\\output";
-            if (!Directory.Exists(output))
-            {
-                logMessage($"Creating {output} directory to output files", LogTypes.Debug);
-                Directory.CreateDirectory(output);
+                LogMessage($"{txtInput.Text} is an invalid path", LogTypes.Error);
             }
 
-            var result = pdftk.Analyze(item, output, CreateConfig(fileType));
-
-            ProcessResult(result, fileType, $"{output}\\{fileType}");
-
-            logMessage($"Done for {item}", LogTypes.Info);
-
-            return result;
-        }
-
-        private void ProcessResult(PDFFile result, FileTypes fileType, string output)
-        {
-            var outputThermal = $"{output}\\thermal";
-            if (!Directory.Exists(outputThermal))
-            {
-                logMessage($"Creating {outputThermal} directory to output thermal files", LogTypes.Debug);
-                Directory.CreateDirectory(outputThermal);
-            }
-
-            var outputPaper = $"{output}\\paper";
-            if (!Directory.Exists(outputPaper))
-            {
-                logMessage($"Creating {outputPaper} directory to output paper files", LogTypes.Debug);
-                Directory.CreateDirectory(outputPaper);
-            }
-
-            switch (fileType)
-            {
-                case FileTypes.FedEx:
-                    {
-                        foreach (var page in result.Pages)
-                            ProcessFedEX(fileType, outputThermal, outputPaper, page);
-                        break;
-                    }
-                case FileTypes.UPS:
-                    {
-                        foreach (var page in result.Pages)
-                            ProcessUPS(fileType, outputThermal, outputPaper, page);
-                        break;
-                    }
-            }
-        }
-
-        private PDFAnalyzeConfig CreateConfig(FileTypes fileType)
-        {
-            var config = new PDFAnalyzeConfig() { MakeJsonReport = true };
-
-            switch (fileType)
-            {
-                case FileTypes.FedEx:
-                    {
-                        config.FindBarCode = true;
-                        config.GetAllText = false;
-                        break;
-                    }
-                case FileTypes.UPS:
-                    {
-                        config.FindBarCode = false;
-                        config.GetAllText = true;
-                        break;
-                    }
-            }
-
-            return config;
-        }
-
-        private void ProcessUPS(FileTypes fileType, string outputThermal, string outputPaper, PDFPage page)
-        {
-            if (!string.Join("", page.Text).ToUpper().Contains("INVOICE"))
-            {
-                logMessage($"[{fileType}] {page.PageFile} is THERMAL", LogTypes.Debug);
-                MovePDF(page.PageFile, $"{outputThermal}\\{Path.GetFileName(page.PageFile)}", false, fileType);
-            }
-            else
-            {
-                logMessage($"[{fileType}] {page.PageFile} is PAPER", LogTypes.Debug);
-                MovePDF(page.PageFile, $"{outputPaper}\\{Path.GetFileName(page.PageFile)}", false, fileType);
-            }
-        }
-
-        private void ProcessFedEX(FileTypes fileType, string outputThermal, string outputPaper, PDFPage page)
-        {
-            if (page.Code != null)
-            {
-                logMessage($"[{fileType}] {page.PageFile} is THERMAL", LogTypes.Debug);
-                MovePDF(page.PageFile, $"{outputThermal}\\{Path.GetFileName(page.PageFile)}", false, fileType);
-            }
-            else
-            {
-                logMessage($"[{fileType}] {page.PageFile} is PAPER", LogTypes.Debug);
-                MovePDF(page.PageFile, $"{outputPaper}\\{Path.GetFileName(page.PageFile)}", false, fileType);
-            }
-        }
-
-        private void MovePDF(string source, string destiny, bool overridde, FileTypes fileType)
-        {
-            if (File.Exists(destiny))
-            {
-                if (overridde)
-                {
-                    logMessage($"[{fileType}] {destiny} already exists, ignoring", LogTypes.Info);
-                    return;
-                }
-                File.Delete(destiny);
-            }
-
-            logMessage($"[{fileType}] Delivering {Path.GetFileName(source)}  to {destiny}", LogTypes.Info);
-            File.Move(source, destiny);
+            LogMessage($"Finish!", LogTypes.Info);
         }
 
         private void txtInput_Click(object sender, EventArgs e)

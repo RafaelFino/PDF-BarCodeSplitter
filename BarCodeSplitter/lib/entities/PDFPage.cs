@@ -7,12 +7,12 @@ namespace BarCodeSplitter.lib
         public BarCode Code { get; set; }
         public int PageNumber { get; set; }
         public string PageFile { get; set; }
-        public IEnumerable<string> Text { get; set; }
+        public string Text { get; set; }
         public float ProcessElaspedTime { get; set; }
 
         public override string ToString()
         {
-            return $"File: {PageNumber}|Code: {Code}|Text: {string.Join(";", Text)}";
+            return $"File: {PageNumber}|Code: {Code}|Text: {Text}";
         }
     }
 }
