@@ -115,6 +115,7 @@
             this.txtLog.ForeColor = System.Drawing.Color.Yellow;
             this.txtLog.Location = new System.Drawing.Point(0, 41);
             this.txtLog.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.txtLog.MinimumSize = new System.Drawing.Size(800, 600);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
