@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BarCodeSplitter.lib
+﻿namespace BarCodeSplitter.lib
 {
     public class PDFPage
     {

@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BarCodeSplitter.lib
 {
@@ -132,7 +129,7 @@ namespace BarCodeSplitter.lib
 
             foreach (var page in file.Pages)
             {
-                if (page.Code != null)
+                if (page.Code != null && page.Code.CodeType == "PDF_417")
                 {
                     Log($"[{FileTypes.UPS}] {page.PageFile} is THERMAL", LogTypes.Debug);
                     ret.Thermal.Add(page.PageFile);

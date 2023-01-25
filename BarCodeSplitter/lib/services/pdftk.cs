@@ -2,8 +2,6 @@
 using ImageMagick;
 using Newtonsoft.Json;
 using PdfSharp.Pdf;
-using PdfSharp.Pdf.Content;
-using PdfSharp.Pdf.Content.Objects;
 using PdfSharp.Pdf.IO;
 using System;
 using System.Collections.Concurrent;
@@ -51,7 +49,6 @@ namespace BarCodeSplitter.lib
                     if (config.GetAllText)
                     {
                         Log($"[Analyze] Trying to extractg text from {page.PageFile}");
-                        //page.Text = ExtractText(page.PageFile);
                         page.Text = GetText(page.PageFile);
                     }
 
