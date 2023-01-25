@@ -6,10 +6,10 @@ This software needs to split every page on input Invoice files by types, and eac
 - Paper
 
 ### FedEX
-Pages with barcodes are Thermal types
+Pages with barcodes type PDF_417 are Thermal types
 
 ### UPS
-Pages with text "invoice" are paper type
+Pages with text "invoice" are paper type (case insensitive)
 
 ## Nuget Deps
 - [Magick.Net](https://github.com/dlemstra/Magick.NET): To Tranform PDF into PNG files (Depends on GhostScript)
