@@ -1,21 +1,22 @@
 ﻿using BarCodeSplitter.lib;
 using BarCodeSplitter.lib.entities;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BarCodeSplitter
 {
     public partial class frmMain : Form
     {
-        const string CFG_LastDir = "lastDir";
-        const string CFG_EnableDebug = "enableDebug";
+        const string CFG_LastDir = "lastDir";        
 
-        private bool _enableDebug = true;
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private DeliveryService _delivery = new DeliveryService();
+        private const int MAX_LOG_LINES = 500;
 
         public frmMain()
         {
@@ -24,14 +25,6 @@ namespace BarCodeSplitter
             //fill file type combo box
             cmbOutputType.DataSource = Enum.GetValues(typeof(FileTypes));
             cmbOutputType.SelectedIndex = 0;
-
-            if (ConfigurationManager.AppSettings.AllKeys.Contains(CFG_EnableDebug))
-            {
-                var enableDebugValue = ConfigurationManager.AppSettings.Get(CFG_EnableDebug);
-
-                _enableDebug = Convert.ToBoolean(enableDebugValue);
-            }
-
 
             var lastDir = ConfigurationManager.AppSettings.Get(CFG_LastDir);
 
@@ -44,62 +37,40 @@ namespace BarCodeSplitter
                 txtInput.Text = lastDir;
             }
 
-            _delivery.Pdftk.LogMessage += OnLog;
-            _delivery.LogMessage += OnLog;
+            Logger.GetInstance.LogMessage += OnLog;
         }
 
         private void OnLog(object sender, LogMsg msg)
         {
-            LogMessage(msg.Message, msg.Type);
-        }
-        private void OnLog(object sender, string message)
-        {
-            LogMessage(message, LogTypes.Debug);
-        }
-
-        private void LogMessage(string message, LogTypes logType = LogTypes.Info)
-        {
-            if (!_enableDebug && logType == LogTypes.Debug)
+            if (msg.Level == LogLevel.Debug)
             {
                 return;
             }
 
-            switch (logType)
-            {
-                case LogTypes.Debug:
-                    {
-                        _logger.Debug(message);
-                        break;
-                    }
-                case LogTypes.Error:
-                    {
-                        _logger.Error(message);
-                        break;
-                    }
-                default:
-                    {
-                        _logger.Info(message);
-                        break;
-                    }
-            }
-
-            var fmtMsg = $"[{DateTime.Now}] [{logType}] {message}{Environment.NewLine}";
+            var fmtMsg = $"[{DateTime.Now}] [{msg.Level}] [{msg.Source}] {msg.Message}";
             if (txtLog.InvokeRequired)
             {
                 txtLog.Invoke((MethodInvoker)delegate
                 {
-                    txtLog.AppendText(fmtMsg);
-                    txtLog.SelectionStart = txtLog.Text.Length;
-                    txtLog.SelectionLength = 0;
+                    WriteLog(fmtMsg);
                 });
             }
             else
             {
-                txtLog.AppendText(fmtMsg);
-                txtLog.SelectionStart = txtLog.Text.Length;
-                txtLog.SelectionLength = 0;
+                WriteLog(fmtMsg);
+            }
+        }
+
+        private void WriteLog(string message)
+        {
+            if (txtLog.Lines.Length >= MAX_LOG_LINES-100)
+            {
+                txtLog.Lines = txtLog.Lines.Skip(100).ToArray();
             }
 
+            txtLog.AppendText(message + Environment.NewLine);
+            txtLog.SelectionStart = txtLog.Text.Length;
+            txtLog.SelectionLength = 0;
         }
 
         private void AddUpdateAppSettings(string key, string value)
@@ -112,7 +83,7 @@ namespace BarCodeSplitter
                 if (settings[key] == null)
                 {
                     settings.Add(key, value);
-                    LogMessage($"App.Config updated: NewValue [{key}:{value}]", LogTypes.Debug);
+                    Logger.GetInstance.Log($"App.Config updated: NewValue [{key}:{value}]", LogLevel.Debug);
                 }
                 else
                 {
@@ -127,33 +98,20 @@ namespace BarCodeSplitter
                 }
                 configFile.Save(ConfigurationSaveMode.Modified);
                 ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
-                LogMessage($"App.Config updated [{key}:{value}]", LogTypes.Debug);
+                Logger.GetInstance.Log($"App.Config updated [{key}:{value}]", LogLevel.Debug);
             }
             catch (ConfigurationErrorsException)
             {
-                LogMessage($"Error writing app settings [{key}:{value}]", LogTypes.Error);
+                Logger.GetInstance.Log($"Error writing app settings [{key}:{value}]", LogLevel.Error);
             }
         }
 
         private void btnRun_Click(object sender, EventArgs e)
         {
-            LogMessage($"Starting...", LogTypes.Info);
-            if (Directory.Exists(txtInput.Text))
-            {
-                foreach (var item in Directory.GetFiles(txtInput.Text, "*.pdf"))
-                {
-                    FileTypes fileType;
-                    Enum.TryParse<FileTypes>(cmbOutputType.SelectedValue.ToString(), out fileType);
+            FileTypes fileType;
+            Enum.TryParse<FileTypes>(cmbOutputType.SelectedValue.ToString(), out fileType);
 
-                    _delivery.RunFile(txtInput.Text, item, fileType);
-                }
-            }
-            else
-            {
-                LogMessage($"{txtInput.Text} is an invalid path", LogTypes.Error);
-            }
-
-            LogMessage($"Finish!", LogTypes.Info);
+            Task.Factory.StartNew(() => _delivery.RunBatch(txtInput.Text, fileType));            
         }
 
         private void txtInput_Click(object sender, EventArgs e)

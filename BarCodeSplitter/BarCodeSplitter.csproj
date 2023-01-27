@@ -244,6 +244,8 @@
     <Compile Include="frmMain.Designer.cs">
       <DependentUpon>frmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="lib\entities\LogMsg.cs" />
+    <Compile Include="lib\Logger.cs" />
     <Compile Include="lib\services\Delivery.cs" />
     <Compile Include="lib\entities\BarCode.cs" />
     <Compile Include="lib\entities\PDFPage.cs" />
@@ -251,7 +253,7 @@
     <Compile Include="lib\entities\PDFAnalyzeConfig.cs" />
     <Compile Include="lib\entities\PDFFileResult.cs" />
     <Compile Include="lib\services\PDFTk.cs" />
-    <Compile Include="lib\entities\LogTypes.cs" />
+    <Compile Include="lib\entities\LogLevel.cs" />
     <Compile Include="lib\entities\FileTypes.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

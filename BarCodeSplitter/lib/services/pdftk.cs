@@ -15,20 +15,17 @@ using ZXing;
 namespace BarCodeSplitter.lib
 {
     public partial class PDFToolKit
-    {
-        public event EventHandler<LogMsg> LogMessage;
+    {         
         private MagickReadSettings _readSettings = new MagickReadSettings() { Density = new Density(300) };
-
 
         protected virtual void Log(LogMsg msg)
         {
-            LogMessage?.Invoke(this, msg);
+            Logger.GetInstance.Log(msg);
         }
         protected virtual void Log(string message)
         {
-            Log(new LogMsg() { Message = $"[PDFToolKit] {message}", Type = LogTypes.Debug });
+            Logger.GetInstance.Log(new LogMsg { Source = "PDFToolKit", Message = message, Level = LogLevel.Debug });
         }
-
         public PDFFile Analyze(string filename, string outputPath, PDFAnalyzeConfig config)
         {
             var sw = Stopwatch.StartNew();
