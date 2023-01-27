@@ -162,7 +162,7 @@ namespace BarCodeSplitter.lib
 
             if (File.Exists(pngFile))
             {
-                Log($"[FindBarCode] PNG file {pngFile} already exists, deleting before write a new", LogLevel.Error);
+                Log($"[FindBarCode] PNG temp file {pngFile} already exists, deleting before write a new", LogLevel.Error);
                 File.Delete(pngFile);
             }            
 
@@ -172,7 +172,8 @@ namespace BarCodeSplitter.lib
 
                 if (!File.Exists(pngFile))
                 {
-                    Log($"[FindBarCode] Fail to open PNG file {pngFile}", LogLevel.Error);
+                    Log($"[FindBarCode] Fail to write and open PNG file {pngFile}", LogLevel.Error);
+                    throw new FileNotFoundException(pngFile);
                 }
 
                 IBarcodeReader reader = new BarcodeReader();
