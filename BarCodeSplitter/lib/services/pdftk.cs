@@ -60,11 +60,8 @@ namespace BarCodeSplitter.lib
                     pages.Add(page);
                 }
 
-                if (config.MakeJsonReport)
-                {
-                    Log($"[Analyze] Creating JSON Report for {filename}");
-                    CreateSummary(ret, outputPath);
-                }
+                Log($"[Analyze] Creating JSON Report for {filename}");
+                CreateSummary(ret, outputPath, config.MakeJsonReport);
 
                 sw.Stop();
                 ret.ProcessElaspedTime = sw.ElapsedMilliseconds;
@@ -105,9 +102,21 @@ namespace BarCodeSplitter.lib
 
                 string name = Path.GetFileNameWithoutExtension(filename);
 
-                if(inputDocument.PageCount == 0)
+                var pdfPath = $"{outputPath}\\{name}";
+
+                if (inputDocument.PageCount == 0)
                 {
                     Log($"[Split] File {filename} doesn't have pages!", LogLevel.Error);
+                }
+
+                if (Directory.Exists(pdfPath))
+                {
+                    Directory.Delete(pdfPath, true);
+                }
+
+                if (!Directory.Exists(pdfPath))
+                {
+                    Directory.CreateDirectory(pdfPath);
                 }
 
                 for (int idx = 0; idx < inputDocument.PageCount; idx++)
@@ -117,20 +126,9 @@ namespace BarCodeSplitter.lib
                     outputDocument.Info.Title = $"Page {idx+1}/{inputDocument.PageCount} of {inputDocument.Info.Title}";
                     outputDocument.Info.Creator = inputDocument.Info.Creator;
 
-                    outputDocument.AddPage(inputDocument.Pages[idx]);
-                    if (!Directory.Exists($"{outputPath}\\{name}"))
-                    {
-                        Directory.Delete($"{outputPath}\\{name}");
-                        Directory.CreateDirectory($"{outputPath}\\{name}");
-                    }
+                    outputDocument.AddPage(inputDocument.Pages[idx]);                    
 
-                    var newPage = $"{outputPath}\\{name}\\pg {idx+1}-{inputDocument.PageCount}.pdf";                    
-
-                    if (File.Exists(newPage))
-                    {
-                        Log($"[Split] Deleting old file page file {newPage}");
-                        File.Delete(newPage);   
-                    }
+                    var newPage = $"{pdfPath}\\pg {idx+1}-{inputDocument.PageCount}.pdf";                    
 
                     Log($"[Split] Creating page file {idx + 1} from {Path.GetFileNameWithoutExtension(filename)}");
 
@@ -141,7 +139,7 @@ namespace BarCodeSplitter.lib
                         Log($"[Split] Fail to create PDF Page {newPage}", LogLevel.Error);
                     }
 
-                    ret.Add(idx, newPage);
+                    ret.Add(idx+1, newPage);
                 }
             }
 
@@ -207,11 +205,15 @@ namespace BarCodeSplitter.lib
 
         private static readonly JsonSerializerSettings _options = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
 
-        private void CreateSummary(PDFFile data, string outputPath)
+        private void CreateSummary(PDFFile data, string outputPath, bool writeJsonReport = false)
         {
             var jsonString = JsonConvert.SerializeObject(data, Formatting.Indented, _options);
             Log($"[CreateSummary] Data: {jsonString}");
-            File.WriteAllText($"{outputPath}\\{Path.GetFileNameWithoutExtension(data.FileSource)}.json", jsonString);
+
+            if (writeJsonReport)
+            {
+                File.WriteAllText($"{outputPath}\\{Path.GetFileNameWithoutExtension(data.FileSource)}.json", jsonString);
+            }            
         }
         private string GetText(string filename)
         {

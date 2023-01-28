@@ -34,6 +34,8 @@ namespace BarCodeSplitter.lib
                 {
                     var results = new ConcurrentBag<Task>();
                     var files = Directory.GetFiles(input, "*.pdf");
+                    Array.Sort(files);
+
                     foreach (var item in files)
                     {
                         Log($"[{fileType}] Creating new Thread for to process {item} - {results.Count + 1}/{files.Length}", LogLevel.Info);
@@ -49,15 +51,15 @@ namespace BarCodeSplitter.lib
                         Log($"[{fileType}] Batch still running for {running}/{files.Length} Threads yet, please wait...", LogLevel.Info);
 
                         //2 seconds per thread, 5 sec at min
-                        Thread.Sleep(TimeSpan.FromSeconds(Math.Max(running*2, 5)));
-                    }                    
+                        Thread.Sleep(TimeSpan.FromSeconds(Math.Max(running * 2, 5)));
+                    }
                 }
                 else
                 {
                     Log($"{input} is an invalid path", LogLevel.Error);
                 }
 
-                sw.Stop();  
+                sw.Stop();
                 Log($"[{fileType}] Batch process finished for {input} in {sw.ElapsedMilliseconds} ms", LogLevel.Info);
             }
             catch (Exception ex)
@@ -95,7 +97,7 @@ namespace BarCodeSplitter.lib
                 else
                 {
                     Log($"[{fileType}] No pages on {input}", LogLevel.Error);
-                }                
+                }
             }
             catch (Exception ex)
             {
@@ -103,7 +105,7 @@ namespace BarCodeSplitter.lib
                 throw;
             }
 
-            return new PDFFile{ FileSource = item };
+            return new PDFFile { FileSource = item };
         }
 
         private void ProcessResult(PDFFile file, FileTypes fileType, string output)
@@ -160,7 +162,7 @@ namespace BarCodeSplitter.lib
 
         private PDFAnalyzeConfig CreateConfig(FileTypes fileType)
         {
-            var config = new PDFAnalyzeConfig() { MakeJsonReport = true };
+            var config = new PDFAnalyzeConfig() { MakeJsonReport = false };
 
             switch (fileType)
             {
