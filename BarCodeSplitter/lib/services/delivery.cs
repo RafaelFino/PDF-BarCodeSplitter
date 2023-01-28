@@ -34,11 +34,11 @@ namespace BarCodeSplitter.lib
                 {
                     var results = new ConcurrentBag<Task>();
                     var files = Directory.GetFiles(input, "*.pdf");
-                    Parallel.ForEach(files, item =>
+                    foreach (var item in files)
                     {
                         Log($"[{fileType}] Creating new Thread for to process {item} - {results.Count + 1}/{files.Length}", LogLevel.Info);
                         results.Add(Task.Factory.StartNew(() => RunFile(input, item, fileType)));
-                    });
+                    }
 
                     //wait to start to show batch log
                     Thread.Sleep(TimeSpan.FromSeconds(files.Length));
@@ -48,7 +48,7 @@ namespace BarCodeSplitter.lib
                         var running = results.Where(t => _runningStatus.Contains(t.Status)).Count();
                         Log($"[{fileType}] Batch still running for {running}/{files.Length} Threads yet, please wait...", LogLevel.Info);
 
-                        //2 seconds per thread
+                        //2 seconds per thread, 5 sec at min
                         Thread.Sleep(TimeSpan.FromSeconds(Math.Max(running*2, 5)));
                     }                    
                 }
@@ -77,19 +77,33 @@ namespace BarCodeSplitter.lib
                     Directory.CreateDirectory(output);
                 }
 
-                var result = _pdftk.Analyze(item, output, CreateConfig(fileType));
+                if (_pdftk.CountPages(item) > 0)
+                {
+                    var result = _pdftk.Analyze(item, output, CreateConfig(fileType));
 
-                ProcessResult(result, fileType, $"{output}\\{fileType}");
+                    if (result.Pages.Count == 0)
+                    {
+                        Log($"[{fileType}] Process error to read pages from {input}", LogLevel.Error);
+                    }
 
-                Log($"[{fileType}] Done for {item}", LogLevel.Info);
+                    ProcessResult(result, fileType, $"{output}\\{fileType}");
 
-                return result;
+                    Log($"[{fileType}] Done for {item}", LogLevel.Info);
+
+                    return result;
+                }
+                else
+                {
+                    Log($"[{fileType}] No pages on {input}", LogLevel.Error);
+                }                
             }
             catch (Exception ex)
             {
                 Logger.GetInstance.Log(new LogMsg { Source = "Delivery", Message = $"Error: {ex.ToString()}", Level = LogLevel.Error });
                 throw;
             }
+
+            return new PDFFile{ FileSource = item };
         }
 
         private void ProcessResult(PDFFile file, FileTypes fileType, string output)
@@ -126,11 +140,22 @@ namespace BarCodeSplitter.lib
 
             var outputThermalFile = $"{outputThermalPath}\\{Path.GetFileName(file.FileSource)}";
             Log($"[{fileType}] Delivering THREMAL {outputThermalFile}", LogLevel.Info);
-            _pdftk.Concat(result.Thermal, outputThermalFile);
+            _pdftk.Concat(result.Thermal, outputThermalFile, true);
 
             var outputPaperFile = $"{outputPaperPath}\\{Path.GetFileName(file.FileSource)}";
             Log($"[{fileType}] Delivering PAPER {outputPaperFile}", LogLevel.Info);
-            _pdftk.Concat(result.Paper, outputPaperFile);
+            _pdftk.Concat(result.Paper, outputPaperFile, true);
+
+            //Check page count
+            var pageCount = _pdftk.CountPages(file.FileSource);
+            var processedCount = result.Paper.Count + result.Thermal.Count;
+
+            if (pageCount != processedCount)
+            {
+                var errorMsg = $"[{fileType}] Invalid page count Total: {processedCount} Expected: {pageCount}";
+                Log(errorMsg, LogLevel.Error);
+                throw new Exception(errorMsg);
+            }
         }
 
         private PDFAnalyzeConfig CreateConfig(FileTypes fileType)
@@ -160,7 +185,7 @@ namespace BarCodeSplitter.lib
         {
             var ret = new PDFFileResult() { Paper = new List<string>(), Thermal = new List<string>() };
 
-            foreach (var page in file.Pages)
+            foreach (var page in file.Pages.OrderBy(p => p.PageNumber))
             {
                 var data = string.Join("", page.Text).ToUpper();
                 if (!data.Contains("INVOICE"))
@@ -182,7 +207,7 @@ namespace BarCodeSplitter.lib
         {
             var ret = new PDFFileResult() { Paper = new List<string>(), Thermal = new List<string>() };
 
-            foreach (var page in file.Pages)
+            foreach (var page in file.Pages.OrderBy(p => p.PageNumber))
             {
                 if (page.Code != null && page.Code.CodeType == "PDF_417")
                 {

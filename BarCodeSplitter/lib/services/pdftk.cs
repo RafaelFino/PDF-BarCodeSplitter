@@ -15,27 +15,35 @@ using ZXing;
 namespace BarCodeSplitter.lib
 {
     public partial class PDFToolKit
-    {         
+    {
         private MagickReadSettings _readSettings = new MagickReadSettings() { Density = new Density(300) };
 
         protected virtual void Log(LogMsg msg)
         {
             Logger.GetInstance.Log(msg);
         }
-        protected virtual void Log(string message)
+        protected virtual void Log(string message, LogLevel level = LogLevel.Debug)
         {
-            Logger.GetInstance.Log(new LogMsg { Source = "PDFToolKit", Message = message, Level = LogLevel.Debug });
+            Logger.GetInstance.Log(new LogMsg { Source = "PDFToolKit", Message = message, Level = level });
         }
         public PDFFile Analyze(string filename, string outputPath, PDFAnalyzeConfig config)
         {
             var sw = Stopwatch.StartNew();
-            var ret = new PDFFile { FileSource = filename, Pages = new ConcurrentBag<PDFPage>() };
+            var ret = new PDFFile { FileSource = filename };
+            var pages = new List<PDFPage>();
 
             try
             {
-                foreach (var item in Split(filename, $"{Path.GetTempPath()}PDFBarCodeSplitter"))
+                var files = Split(filename, $"{Path.GetTempPath()}PDFBarCodeSplitter");
+
+                if (files.Count == 0)
                 {
-                    var page = new PDFPage() { PageFile = item.Value, PageNumber = item.Key };
+                    Log($"[Analyze] No pages splitted on {filename}", LogLevel.Error);
+                }
+
+                foreach (var item in files)
+                {
+                    var page = new PDFPage { PageFile = item.Value, PageNumber = item.Key };
 
                     if (config.FindBarCode)
                     {
@@ -49,8 +57,8 @@ namespace BarCodeSplitter.lib
                         page.Text = GetText(page.PageFile);
                     }
 
-                    ret.Pages.Add(page);
-                };
+                    pages.Add(page);
+                }
 
                 if (config.MakeJsonReport)
                 {
@@ -60,10 +68,24 @@ namespace BarCodeSplitter.lib
 
                 sw.Stop();
                 ret.ProcessElaspedTime = sw.ElapsedMilliseconds;
+                ret.Pages = new ConcurrentBag<PDFPage>(pages);  
             }
             catch (Exception ex)
             {
-                Log($"[Analyze] ERROR {ex.Message}\n Stack: {ex.ToString()}");
+                Log($"[Analyze] ERROR {ex.Message}\n Details: {ex}");
+                throw;
+            }
+
+            return ret;
+        }
+
+        public int CountPages(string filename)
+        {
+            var ret = 0;
+
+            using (PdfDocument inputDocument = PdfReader.Open(filename, PdfDocumentOpenMode.Import))
+            {
+                ret = inputDocument.PageCount;
             }
 
             return ret;
@@ -74,35 +96,53 @@ namespace BarCodeSplitter.lib
             var ret = new Dictionary<int, string>();
             Log($"[Split] Open {filename}");
 
-            PdfDocument inputDocument = PdfReader.Open(filename, PdfDocumentOpenMode.Import);
-
-            if (!Directory.Exists(outputPath))
+            using (PdfDocument inputDocument = PdfReader.Open(filename, PdfDocumentOpenMode.Import))
             {
-                Directory.CreateDirectory(outputPath);
-            }
-
-            string name = Path.GetFileNameWithoutExtension(filename);
-            for (int idx = 0; idx < inputDocument.PageCount; idx++)
-            {
-                PdfDocument outputDocument = new PdfDocument();
-                outputDocument.Version = inputDocument.Version;
-                outputDocument.Info.Title =
-                  String.Format("Page {0} of {1}", idx + 1, inputDocument.Info.Title);
-                outputDocument.Info.Creator = inputDocument.Info.Creator;
-
-                outputDocument.AddPage(inputDocument.Pages[idx]);
-                if (!Directory.Exists($"{outputPath}\\{name}"))
-                {
-                    Directory.CreateDirectory($"{outputPath}\\{name}");
+                if (!Directory.Exists(outputPath))
+                {                    
+                    Directory.CreateDirectory(outputPath);
                 }
 
-                var newPage = $"{outputPath}\\{name}\\pg {idx + 1}-{inputDocument.PageCount}.pdf";
+                string name = Path.GetFileNameWithoutExtension(filename);
 
-                Log($"[Split] Creating page file {idx + 1} from {Path.GetFileNameWithoutExtension(filename)}");
+                if(inputDocument.PageCount == 0)
+                {
+                    Log($"[Split] File {filename} doesn't have pages!", LogLevel.Error);
+                }
 
-                outputDocument.Save(newPage);
+                for (int idx = 0; idx < inputDocument.PageCount; idx++)
+                {
+                    PdfDocument outputDocument = new PdfDocument();
+                    outputDocument.Version = inputDocument.Version;
+                    outputDocument.Info.Title = $"Page {idx+1}/{inputDocument.PageCount} of {inputDocument.Info.Title}";
+                    outputDocument.Info.Creator = inputDocument.Info.Creator;
 
-                ret.Add(idx + 1, newPage);
+                    outputDocument.AddPage(inputDocument.Pages[idx]);
+                    if (!Directory.Exists($"{outputPath}\\{name}"))
+                    {
+                        Directory.Delete($"{outputPath}\\{name}");
+                        Directory.CreateDirectory($"{outputPath}\\{name}");
+                    }
+
+                    var newPage = $"{outputPath}\\{name}\\pg {idx+1}-{inputDocument.PageCount}.pdf";                    
+
+                    if (File.Exists(newPage))
+                    {
+                        Log($"[Split] Deleting old file page file {newPage}");
+                        File.Delete(newPage);   
+                    }
+
+                    Log($"[Split] Creating page file {idx + 1} from {Path.GetFileNameWithoutExtension(filename)}");
+
+                    outputDocument.Save(newPage);
+
+                    if (!File.Exists(newPage))
+                    {
+                        Log($"[Split] Fail to create PDF Page {newPage}", LogLevel.Error);
+                    }
+
+                    ret.Add(idx, newPage);
+                }
             }
 
             return ret;
@@ -112,11 +152,28 @@ namespace BarCodeSplitter.lib
         {
             var sw = Stopwatch.StartNew();
             BarCode ret = null;
-            var pngFile = $"{Path.GetTempPath()}{Path.GetFileNameWithoutExtension(pageFile)}.png";
+            var pngFile = $"{pageFile}.png";
+
+            if (!File.Exists(pageFile))
+            {
+                Log($"[FindBarCode] Fail to open PDF Page {pageFile}", LogLevel.Error);
+                throw new FileNotFoundException(pageFile);
+            }
+
+            if (File.Exists(pngFile))
+            {
+                Log($"[FindBarCode] PNG file {pngFile} already exists, deleting before write a new", LogLevel.Error);
+                File.Delete(pngFile);
+            }            
 
             using (var image = new MagickImage(pageFile, _readSettings))
             {
                 image.Write(pngFile);
+
+                if (!File.Exists(pngFile))
+                {
+                    Log($"[FindBarCode] Fail to open PNG file {pngFile}", LogLevel.Error);
+                }
 
                 IBarcodeReader reader = new BarcodeReader();
                 using (var barcodeBitmap = (Bitmap)Image.FromFile(pngFile))
@@ -172,26 +229,33 @@ namespace BarCodeSplitter.lib
             return string.Join(string.Empty, ret);
         }
 
-        public void Concat(IList<string> files, string outputFile)
+        public void Concat(IList<string> files, string outputFile, bool deleteSource = false)
         {
             if (files == null || files.Count == 0)
             {
                 return;
             }
 
-            var outputDocument = new PdfDocument();
-
-            foreach (string file in files)
+            using (var outputDocument = new PdfDocument())
             {
-                PdfDocument inputDocument = PdfReader.Open(file, PdfDocumentOpenMode.Import);
-
-                foreach (var page in inputDocument.Pages)
+                foreach (string file in files)
                 {
-                    outputDocument.AddPage(page);
-                }
-            }
+                    using (PdfDocument inputDocument = PdfReader.Open(file, PdfDocumentOpenMode.Import))
+                    {
+                        foreach (var page in inputDocument.Pages)
+                        {
+                            outputDocument.AddPage(page);
+                        }
+                    }
 
-            outputDocument.Save(outputFile);
+                    if (deleteSource)
+                    {
+                        File.Delete(file);
+                    }
+                }
+
+                outputDocument.Save(outputFile);
+            }
         }
     }
 }
