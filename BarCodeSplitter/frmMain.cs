@@ -1,10 +1,12 @@
 ﻿using BarCodeSplitter.lib;
 using BarCodeSplitter.lib.entities;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -12,11 +14,11 @@ namespace BarCodeSplitter
 {
     public partial class frmMain : Form
     {
-        const string CFG_LastDir = "lastDir";        
+        const string CFG_LastDir = "lastDir";
 
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private DeliveryService _delivery = new DeliveryService();
-        private const int MAX_LOG_LINES = 500;
+        private const int MAX_LOG_LINES = 500;        
 
         public frmMain()
         {
@@ -63,7 +65,7 @@ namespace BarCodeSplitter
 
         private void WriteLog(string message)
         {
-            if (txtLog.Lines.Length >= MAX_LOG_LINES-100)
+            if (txtLog.Lines.Length >= MAX_LOG_LINES - 100)
             {
                 txtLog.Lines = txtLog.Lines.Skip(100).ToArray();
             }
@@ -111,7 +113,7 @@ namespace BarCodeSplitter
             FileTypes fileType;
             Enum.TryParse<FileTypes>(cmbOutputType.SelectedValue.ToString(), out fileType);
 
-            Task.Factory.StartNew(() => _delivery.RunBatch(txtInput.Text, fileType));            
+            Task.Factory.StartNew(() => _delivery.RunBatch(txtInput.Text, fileType));
         }
 
         private void txtInput_Click(object sender, EventArgs e)
@@ -126,6 +128,12 @@ namespace BarCodeSplitter
                     AddUpdateAppSettings(CFG_LastDir, fbd.SelectedPath);
                 }
             }
+        }
+
+        private void btnLog_Click(object sender, EventArgs e)
+        {
+            frmLog log = new frmLog();
+            log.ShowDialog();   
         }
     }
 }

@@ -34,6 +34,7 @@
             this.lblOutputTypes = new System.Windows.Forms.Label();
             this.cmbOutputType = new System.Windows.Forms.ComboBox();
             this.txtInput = new System.Windows.Forms.TextBox();
+            this.btnLog = new System.Windows.Forms.Button();
             this.txtLog = new System.Windows.Forms.TextBox();
             this.pnlTop.SuspendLayout();
             this.SuspendLayout();
@@ -45,17 +46,18 @@
             this.pnlTop.Controls.Add(this.lblOutputTypes);
             this.pnlTop.Controls.Add(this.cmbOutputType);
             this.pnlTop.Controls.Add(this.txtInput);
+            this.pnlTop.Controls.Add(this.btnLog);
             this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlTop.Location = new System.Drawing.Point(0, 0);
             this.pnlTop.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pnlTop.Name = "pnlTop";
-            this.pnlTop.Size = new System.Drawing.Size(1344, 41);
+            this.pnlTop.Size = new System.Drawing.Size(1403, 41);
             this.pnlTop.TabIndex = 6;
             // 
             // btnRun
             // 
             this.btnRun.Dock = System.Windows.Forms.DockStyle.Right;
-            this.btnRun.Location = new System.Drawing.Point(1186, 0);
+            this.btnRun.Location = new System.Drawing.Point(1087, 0);
             this.btnRun.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnRun.Name = "btnRun";
             this.btnRun.Size = new System.Drawing.Size(158, 41);
@@ -77,7 +79,7 @@
             // 
             this.lblOutputTypes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblOutputTypes.AutoSize = true;
-            this.lblOutputTypes.Location = new System.Drawing.Point(953, 9);
+            this.lblOutputTypes.Location = new System.Drawing.Point(861, 9);
             this.lblOutputTypes.Name = "lblOutputTypes";
             this.lblOutputTypes.Size = new System.Drawing.Size(51, 20);
             this.lblOutputTypes.TabIndex = 9;
@@ -88,10 +90,10 @@
             this.cmbOutputType.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbOutputType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbOutputType.FormattingEnabled = true;
-            this.cmbOutputType.Location = new System.Drawing.Point(1010, 6);
+            this.cmbOutputType.Location = new System.Drawing.Point(918, 6);
             this.cmbOutputType.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cmbOutputType.Name = "cmbOutputType";
-            this.cmbOutputType.Size = new System.Drawing.Size(170, 28);
+            this.cmbOutputType.Size = new System.Drawing.Size(163, 28);
             this.cmbOutputType.Sorted = true;
             this.cmbOutputType.TabIndex = 8;
             // 
@@ -103,9 +105,21 @@
             this.txtInput.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtInput.Name = "txtInput";
             this.txtInput.ReadOnly = true;
-            this.txtInput.Size = new System.Drawing.Size(766, 26);
+            this.txtInput.Size = new System.Drawing.Size(653, 26);
             this.txtInput.TabIndex = 6;
             this.txtInput.Click += new System.EventHandler(this.txtInput_Click);
+            // 
+            // btnLog
+            // 
+            this.btnLog.Dock = System.Windows.Forms.DockStyle.Right;
+            this.btnLog.Location = new System.Drawing.Point(1245, 0);
+            this.btnLog.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.btnLog.Name = "btnLog";
+            this.btnLog.Size = new System.Drawing.Size(158, 41);
+            this.btnLog.TabIndex = 12;
+            this.btnLog.Text = "&Processos";
+            this.btnLog.UseVisualStyleBackColor = true;
+            this.btnLog.Click += new System.EventHandler(this.btnLog_Click);
             // 
             // txtLog
             // 
@@ -115,22 +129,22 @@
             this.txtLog.ForeColor = System.Drawing.Color.Yellow;
             this.txtLog.Location = new System.Drawing.Point(0, 41);
             this.txtLog.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.txtLog.MinimumSize = new System.Drawing.Size(800, 600);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
-            this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(1344, 781);
+            this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtLog.Size = new System.Drawing.Size(1403, 607);
             this.txtLog.TabIndex = 7;
+            this.txtLog.WordWrap = false;
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1344, 822);
+            this.ClientSize = new System.Drawing.Size(1403, 648);
             this.Controls.Add(this.txtLog);
             this.Controls.Add(this.pnlTop);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.MinimumSize = new System.Drawing.Size(800, 600);
+            this.MinimumSize = new System.Drawing.Size(1100, 600);
             this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "PDF Splitter";
@@ -150,6 +164,7 @@
         private System.Windows.Forms.ComboBox cmbOutputType;
         private System.Windows.Forms.TextBox txtInput;
         private System.Windows.Forms.TextBox txtLog;
+        private System.Windows.Forms.Button btnLog;
     }
 }
 

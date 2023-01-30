@@ -38,6 +38,7 @@ namespace BarCodeSplitter.lib
 
                     foreach (var item in files)
                     {
+                        StatusManager.GetInstance.UpdateStatus(item, ItemStatus.Started);
                         Log($"[{fileType}] Creating new Thread for to process {item} - {results.Count + 1}/{files.Length}", LogLevel.Info);
                         results.Add(Task.Factory.StartNew(() => RunFile(input, item, fileType)));
                     }
@@ -91,6 +92,7 @@ namespace BarCodeSplitter.lib
                     ProcessResult(result, fileType, $"{output}\\{fileType}");
 
                     Log($"[{fileType}] Done for {item}", LogLevel.Info);
+                    StatusManager.GetInstance.UpdateStatus(item, ItemStatus.Done);
 
                     return result;
                 }
@@ -110,6 +112,8 @@ namespace BarCodeSplitter.lib
 
         private void ProcessResult(PDFFile file, FileTypes fileType, string output)
         {
+            StatusManager.GetInstance.UpdateStatus(file.FileSource, ItemStatus.ProcessingFileType);
+
             var outputThermalPath = $"{output}\\thermal";
             if (!Directory.Exists(outputThermalPath))
             {
@@ -142,10 +146,12 @@ namespace BarCodeSplitter.lib
 
             var outputThermalFile = $"{outputThermalPath}\\{Path.GetFileName(file.FileSource)}";
             Log($"[{fileType}] Delivering THREMAL {outputThermalFile}", LogLevel.Info);
+            StatusManager.GetInstance.UpdateThermal(file.FileSource, result.Thermal.Count());
             _pdftk.Concat(result.Thermal, outputThermalFile, true);
 
             var outputPaperFile = $"{outputPaperPath}\\{Path.GetFileName(file.FileSource)}";
             Log($"[{fileType}] Delivering PAPER {outputPaperFile}", LogLevel.Info);
+            StatusManager.GetInstance.UpdatePaper(file.FileSource, result.Paper.Count());
             _pdftk.Concat(result.Paper, outputPaperFile, true);
 
             //Check page count

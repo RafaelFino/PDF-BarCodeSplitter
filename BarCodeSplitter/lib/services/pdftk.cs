@@ -34,6 +34,7 @@ namespace BarCodeSplitter.lib
 
             try
             {
+                StatusManager.GetInstance.UpdateStatus(filename, ItemStatus.Splitting);
                 var files = Split(filename, $"{Path.GetTempPath()}PDFBarCodeSplitter");
 
                 if (files.Count == 0)
@@ -47,12 +48,14 @@ namespace BarCodeSplitter.lib
 
                     if (config.FindBarCode)
                     {
+                        StatusManager.GetInstance.UpdateStatus(filename, ItemStatus.SearchingBarCode);
                         Log($"[Analyze] Searching for a bar code {page.PageFile}");
                         page.Code = FindBarCode(page.PageFile, page.PageNumber);
                     }
 
                     if (config.GetAllText)
                     {
+                        StatusManager.GetInstance.UpdateStatus(filename, ItemStatus.SearchingText);
                         Log($"[Analyze] Trying to extractg text from {page.PageFile}");
                         page.Text = GetText(page.PageFile);
                     }
@@ -119,6 +122,8 @@ namespace BarCodeSplitter.lib
                     Directory.CreateDirectory(pdfPath);
                 }
 
+                StatusManager.GetInstance.UpdatePages(filename, inputDocument.PageCount);
+
                 for (int idx = 0; idx < inputDocument.PageCount; idx++)
                 {
                     PdfDocument outputDocument = new PdfDocument();
@@ -141,6 +146,8 @@ namespace BarCodeSplitter.lib
 
                     ret.Add(idx+1, newPage);
                 }
+
+
             }
 
             return ret;
@@ -207,6 +214,7 @@ namespace BarCodeSplitter.lib
 
         private void CreateSummary(PDFFile data, string outputPath, bool writeJsonReport = false)
         {
+            StatusManager.GetInstance.UpdateStatus(data.FileSource, ItemStatus.CreatingSummary);
             var jsonString = JsonConvert.SerializeObject(data, Formatting.Indented, _options);
             Log($"[CreateSummary] Data: {jsonString}");
 

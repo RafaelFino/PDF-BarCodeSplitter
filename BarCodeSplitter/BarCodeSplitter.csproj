@@ -238,12 +238,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="frmLog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmLog.Designer.cs">
+      <DependentUpon>frmLog.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmMain.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="frmMain.Designer.cs">
       <DependentUpon>frmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="lib\entities\ItemStatus.cs" />
     <Compile Include="lib\entities\LogMsg.cs" />
     <Compile Include="lib\Logger.cs" />
     <Compile Include="lib\services\Delivery.cs" />
@@ -255,8 +262,12 @@
     <Compile Include="lib\services\PDFTk.cs" />
     <Compile Include="lib\entities\LogLevel.cs" />
     <Compile Include="lib\entities\FileTypes.cs" />
+    <Compile Include="lib\StatusManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="frmLog.resx">
+      <DependentUpon>frmLog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmMain.resx">
       <DependentUpon>frmMain.cs</DependentUpon>
     </EmbeddedResource>
