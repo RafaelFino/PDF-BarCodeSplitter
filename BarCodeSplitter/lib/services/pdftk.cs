@@ -146,8 +146,6 @@ namespace BarCodeSplitter.lib
 
                     ret.Add(idx+1, newPage);
                 }
-
-
             }
 
             return ret;

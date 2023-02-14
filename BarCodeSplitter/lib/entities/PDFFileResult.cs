@@ -8,6 +8,7 @@ namespace BarCodeSplitter.lib
         {
             public IList<string> Thermal { get; set; }
             public IList<string> Paper { get; set; }
+            public int Processed { get; set; }
         }
     }
 }

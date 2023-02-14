@@ -23,10 +23,26 @@ namespace BarCodeSplitter.lib
 
         private readonly HashSet<TaskStatus> _runningStatus = new HashSet<TaskStatus>() { TaskStatus.Running, TaskStatus.WaitingToRun };
 
+        private string _fisinhIcon = Environment.NewLine +
+"░░░░░░░░░░░░▄▄░░░░░░░░░" + Environment.NewLine +
+"░░░░░░░░░░░█░░█░░░░░░░░" + Environment.NewLine +
+"░░░░░░░░░░░█░░█░░░░░░░░" + Environment.NewLine +
+"░░░░░░░░░░█░░░█░░░░░░░░" + Environment.NewLine +
+"░░░░░░░░░█░░░░█░░░░░░░░" + Environment.NewLine +
+"███████▄▄█░░░░░██████▄░░" + Environment.NewLine +
+"▓▓▓▓▓▓█░░░░░░░░░░░░░░█░" + Environment.NewLine +
+"▓▓▓▓▓▓█░░░░░░░░░░░░░░█░" + Environment.NewLine +
+"▓▓▓▓▓▓█░░░░░░░░░░░░░░█░" + Environment.NewLine +
+"▓▓▓▓▓▓█░░░░░░░░░░░░░░█░" + Environment.NewLine +
+"▓▓▓▓▓▓█░░░░░░░░░░░░░░█░" + Environment.NewLine +
+"▓▓▓▓▓▓█████░░░░░░░░░█░░" + Environment.NewLine +
+"██████▀░░░░▀▀██████▀░░░░" + Environment.NewLine;
+
         public void RunBatch(string input, FileTypes fileType)
         {
             try
             {
+                
                 var sw = Stopwatch.StartNew();
                 Log($"Batch start for {input}", LogLevel.Info);
 
@@ -61,7 +77,7 @@ namespace BarCodeSplitter.lib
                 }
 
                 sw.Stop();
-                Log($"[{fileType}] Batch process finished for {input} in {sw.ElapsedMilliseconds} ms", LogLevel.Info);
+                Log($"[{fileType}] Batch process finished for {input} in {sw.ElapsedMilliseconds} ms" + _fisinhIcon, LogLevel.Info);
             }
             catch (Exception ex)
             {
@@ -156,7 +172,7 @@ namespace BarCodeSplitter.lib
 
             //Check page count
             var pageCount = _pdftk.CountPages(file.FileSource);
-            var processedCount = result.Paper.Count + result.Thermal.Count;
+            var processedCount = result.Processed;
 
             if (pageCount != processedCount)
             {
@@ -175,7 +191,7 @@ namespace BarCodeSplitter.lib
                 case FileTypes.FedEx:
                     {
                         config.FindBarCode = true;
-                        config.GetAllText = false;
+                        config.GetAllText = true;
                         break;
                     }
                 case FileTypes.UPS:
@@ -192,20 +208,32 @@ namespace BarCodeSplitter.lib
         private PDFFileResult ProcessUPS(PDFFile file)
         {
             var ret = new PDFFileResult() { Paper = new List<string>(), Thermal = new List<string>() };
+            var processed = new HashSet<string>();
 
             foreach (var page in file.Pages.OrderBy(p => p.PageNumber))
             {
-                var data = string.Join("", page.Text).ToUpper();
-                if (!data.Contains("INVOICE"))
+                if (!processed.Contains(page.MakeHash()))
                 {
-                    Log($"[{FileTypes.UPS}] {page.PageFile} is THERMAL", LogLevel.Debug);
-                    ret.Thermal.Add(page.PageFile);
+                    var data = string.Join("", page.Text).ToUpper();
+                    if (!data.Contains("INVOICE"))
+                    {
+                        Log($"[{FileTypes.UPS}] {page.PageFile} is THERMAL", LogLevel.Debug);
+                        ret.Thermal.Add(page.PageFile);
+                    }
+                    else
+                    {
+                        Log($"[{FileTypes.UPS}] {page.PageFile} is PAPER", LogLevel.Debug);
+                        ret.Paper.Add(page.PageFile);
+                    }                    
+
+                    processed.Add(page.MakeHash());
                 }
                 else
                 {
-                    Log($"[{FileTypes.UPS}] {page.PageFile} is PAPER", LogLevel.Debug);
-                    ret.Paper.Add(page.PageFile);
+                    Log($"[{FileTypes.UPS}] {Path.GetFileNameWithoutExtension(file.FileSource)} ({Path.GetFileNameWithoutExtension(page.PageFile)}) already included, will be ignored", LogLevel.Warning);
                 }
+
+                ret.Processed++;
             }
 
             return ret;
@@ -214,19 +242,31 @@ namespace BarCodeSplitter.lib
         private PDFFileResult ProcessFedEX(PDFFile file)
         {
             var ret = new PDFFileResult() { Paper = new List<string>(), Thermal = new List<string>() };
+            var processed = new HashSet<string>();
 
             foreach (var page in file.Pages.OrderBy(p => p.PageNumber))
             {
-                if (page.Code != null && page.Code.CodeType == "PDF_417")
+                if (!processed.Contains(page.MakeHash()))
                 {
-                    Log($"[{FileTypes.UPS}] {page.PageFile} is THERMAL", LogLevel.Debug);
-                    ret.Thermal.Add(page.PageFile);
+                    if (page.Code != null && page.Code.CodeType == "PDF_417")
+                    {
+                        Log($"[{FileTypes.FedEx}] {page.PageFile} is THERMAL", LogLevel.Debug);
+                        ret.Thermal.Add(page.PageFile);
+                    }
+                    else
+                    {
+                        Log($"[{FileTypes.FedEx}] {page.PageFile} is PAPER", LogLevel.Debug);
+                        ret.Paper.Add(page.PageFile);
+                    }
+
+                    processed.Add(page.MakeHash());
                 }
                 else
                 {
-                    Log($"[{FileTypes.UPS}] {page.PageFile} is PAPER", LogLevel.Debug);
-                    ret.Paper.Add(page.PageFile);
+                    Log($"[{FileTypes.FedEx}] {Path.GetFileNameWithoutExtension(file.FileSource)} ({Path.GetFileNameWithoutExtension(page.PageFile)}) already included, will be ignored", LogLevel.Warning);
                 }
+
+                ret.Processed++;
             }
 
             return ret;
