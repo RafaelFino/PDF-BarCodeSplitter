@@ -126,14 +126,14 @@ namespace BarCodeSplitter.lib
 
                 for (int idx = 0; idx < inputDocument.PageCount; idx++)
                 {
-                    PdfDocument outputDocument = new PdfDocument();
+                    PdfDocument outputDocument = CreateDocument();
                     outputDocument.Version = inputDocument.Version;
-                    outputDocument.Info.Title = $"Page {idx+1}/{inputDocument.PageCount} of {inputDocument.Info.Title}";
+                    outputDocument.Info.Title = $"Page {idx + 1}/{inputDocument.PageCount} of {inputDocument.Info.Title}";
                     outputDocument.Info.Creator = inputDocument.Info.Creator;
 
-                    outputDocument.AddPage(inputDocument.Pages[idx]);                    
+                    outputDocument.AddPage(inputDocument.Pages[idx]);
 
-                    var newPage = $"{pdfPath}\\pg {idx+1}-{inputDocument.PageCount}.pdf";                    
+                    var newPage = $"{pdfPath}\\pg {idx + 1}-{inputDocument.PageCount}.pdf";
 
                     Log($"[Split] Creating page file {idx + 1} from {Path.GetFileNameWithoutExtension(filename)}");
 
@@ -144,12 +144,24 @@ namespace BarCodeSplitter.lib
                         Log($"[Split] Fail to create PDF Page {newPage}", LogLevel.Error);
                     }
 
-                    ret.Add(idx+1, newPage);
+                    ret.Add(idx + 1, newPage);
                 }
             }
 
             return ret;
         }
+
+        private PdfDocument CreateDocument()
+        {
+            var document = new PdfDocument();
+
+            document.Options.FlateEncodeMode = PdfFlateEncodeMode.BestCompression;
+            document.Options.UseFlateDecoderForJpegImages = PdfUseFlateDecoderForJpegImages.Automatic;
+            document.Options.NoCompression = false;
+            document.Options.CompressContentStreams = true;
+
+            return document;
+        }        
 
         private BarCode FindBarCode(string pageFile, int page)
         {

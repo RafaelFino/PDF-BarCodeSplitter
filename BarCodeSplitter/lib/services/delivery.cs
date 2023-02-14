@@ -239,16 +239,19 @@ namespace BarCodeSplitter.lib
             return ret;
         }
 
+        private readonly HashSet<string> _FedEXCodeTypes = new HashSet<string>() { "PDF_417", "UPC_E" };
+
         private PDFFileResult ProcessFedEX(PDFFile file)
         {
             var ret = new PDFFileResult() { Paper = new List<string>(), Thermal = new List<string>() };
             var processed = new HashSet<string>();
+            
 
             foreach (var page in file.Pages.OrderBy(p => p.PageNumber))
             {
                 if (!processed.Contains(page.MakeHash()))
                 {
-                    if (page.Code != null && page.Code.CodeType == "PDF_417")
+                    if (page.Code != null && _FedEXCodeTypes.Contains(page.Code.CodeType))
                     {
                         Log($"[{FileTypes.FedEx}] {page.PageFile} is THERMAL", LogLevel.Debug);
                         ret.Thermal.Add(page.PageFile);

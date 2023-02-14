@@ -6,7 +6,7 @@ This software needs to split every page on input Invoice files by types, and eac
 - Paper
 
 ### FedEX
-Pages with barcodes type PDF_417 are Thermal types
+Pages with barcodes types PDF_417 or UPC_E are Thermal types
 
 ### UPS
 Pages with text "invoice" are paper type (case insensitive)
