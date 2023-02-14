@@ -230,10 +230,15 @@ namespace BarCodeSplitter.lib
                 }
                 else
                 {
-                    Log($"[{FileTypes.UPS}] {Path.GetFileNameWithoutExtension(file.FileSource)} ({Path.GetFileNameWithoutExtension(page.PageFile)}) already included, will be ignored", LogLevel.Warning);
+                    Log($"[{FileTypes.UPS}] {Path.GetFileNameWithoutExtension(file.FileSource)} ({Path.GetFileNameWithoutExtension(page.PageFile)}) already included, will be ignored to {FileTypes.UPS}", LogLevel.Debug);
                 }
 
                 ret.Processed++;
+            }
+
+            if (ret.Processed - processed.Count > 0)
+            {
+                Log($"[{FileTypes.UPS}] File {Path.GetFileName(file.FileSource)} has {ret.Processed - processed.Count} duplicated pages that will be ignored", LogLevel.Info);
             }
 
             return ret;
@@ -244,29 +249,18 @@ namespace BarCodeSplitter.lib
         private PDFFileResult ProcessFedEX(PDFFile file)
         {
             var ret = new PDFFileResult() { Paper = new List<string>(), Thermal = new List<string>() };
-            var processed = new HashSet<string>();
-            
 
             foreach (var page in file.Pages.OrderBy(p => p.PageNumber))
             {
-                if (!processed.Contains(page.MakeHash()))
+                if (page.Code != null && _FedEXCodeTypes.Contains(page.Code.CodeType))
                 {
-                    if (page.Code != null && _FedEXCodeTypes.Contains(page.Code.CodeType))
-                    {
-                        Log($"[{FileTypes.FedEx}] {page.PageFile} is THERMAL", LogLevel.Debug);
-                        ret.Thermal.Add(page.PageFile);
-                    }
-                    else
-                    {
-                        Log($"[{FileTypes.FedEx}] {page.PageFile} is PAPER", LogLevel.Debug);
-                        ret.Paper.Add(page.PageFile);
-                    }
-
-                    processed.Add(page.MakeHash());
+                    Log($"[{FileTypes.FedEx}] {page.PageFile} is THERMAL", LogLevel.Debug);
+                    ret.Thermal.Add(page.PageFile);
                 }
                 else
                 {
-                    Log($"[{FileTypes.FedEx}] {Path.GetFileNameWithoutExtension(file.FileSource)} ({Path.GetFileNameWithoutExtension(page.PageFile)}) already included, will be ignored", LogLevel.Warning);
+                    Log($"[{FileTypes.FedEx}] {page.PageFile} is PAPER", LogLevel.Debug);
+                    ret.Paper.Add(page.PageFile);
                 }
 
                 ret.Processed++;
