@@ -217,16 +217,16 @@ namespace BarCodeSplitter.lib
             {
                 if (!processed.Contains(page.Hash))
                 {
-                    var data = string.Join("", page.Text).ToUpper();
-                    if (!data.Contains("INVOICE"))
+                    var data = page.Text.ToUpper();
+                    if (data.Contains("INVOICE"))
                     {
-                        Log($"[{FileTypes.UPS}] {page.PageFile} is THERMAL", LogLevel.Debug);
-                        ret.Thermal.Add(page.PageFile);
+                        Log($"[{FileTypes.UPS}] {page.PageFile} is PAPER", LogLevel.Debug);
+                        ret.Paper.Add(page.PageFile);                        
                     }
                     else
                     {
-                        Log($"[{FileTypes.UPS}] {page.PageFile} is PAPER", LogLevel.Debug);
-                        ret.Paper.Add(page.PageFile);
+                        Log($"[{FileTypes.UPS}] {page.PageFile} is THERMAL", LogLevel.Debug);
+                        ret.Thermal.Add(page.PageFile);
                     }                    
 
                     processed.Add(page.Hash);

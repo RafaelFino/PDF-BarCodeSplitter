@@ -71,7 +71,7 @@ namespace BarCodeSplitter.lib
                     {
                         StatusManager.GetInstance.UpdateStatus(filename, ItemStatus.SearchingText);
                         Log($"[Analyze] Trying to extractg text from {page.PageFile}");
-                        page.Text = GetText(page.PageFile);
+                        GetText(ref page);
                     }
 
                     if (config.CreateHash)
@@ -240,33 +240,14 @@ namespace BarCodeSplitter.lib
             return null;
         }
 
-        private static readonly SHA1 _sha = SHA1.Create();
-
         public string MakeTextHash(PDFPage page)
         {
-            var content = string.IsNullOrEmpty(page.Text) ? page.ToString() : page.Text;
+            var content = string.IsNullOrEmpty(page.Content) ? page.ToString() : page.Content;
             
-            return Convert.ToBase64String(_sha.ComputeHash(Encoding.UTF8.GetBytes(content)));
-        }
-        public string MakeFileHash(string file)
-        {
-            var sw = Stopwatch.StartNew();
-            var hash = file;
-
-            if (File.Exists(file))
+            using(var sha = SHA1.Create())
             {
-                using (var image = new MagickImage(file, _readHashSettings))
-                {
-                    var content = image.ToByteArray();
-                    var byteHash = _sha.ComputeHash(content);
-                    hash = Convert.ToBase64String(byteHash);
-                }                
-            }
-
-            sw.Stop(); 
-            Log($"[MakeFileHash] File hash from {file} generated: {hash} in {sw.ElapsedMilliseconds} ms", LogLevel.Debug);
-
-            return hash;
+                return Convert.ToBase64String(sha.ComputeHash(Encoding.UTF8.GetBytes(content)));
+            }            
         }
 
         private static readonly JsonSerializerSettings _options = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
@@ -282,22 +263,26 @@ namespace BarCodeSplitter.lib
                 File.WriteAllText($"{outputPath}\\{Path.GetFileNameWithoutExtension(data.FileSource)}.json", jsonString);
             }            
         }
-        private string GetText(string filename)
+        private void GetText(ref PDFPage page)
         {
-            var ret = new StringBuilder();  
+            var text = new StringBuilder();
+            var content = new StringBuilder();
 
-            using (var document = UglyToad.PdfPig.PdfDocument.Open(filename))
+            using (var document = UglyToad.PdfPig.PdfDocument.Open(page.PageFile))
             {
-                foreach (var page in document.GetPages())
+                foreach (var p in document.GetPages())
                 {
-                    foreach (var l in page.Letters)
+                    foreach (var l in p.Letters)
                     {
-                        ret.Append(l.ToString());   
+                        text.Append(l.Value);
+                        content.Append(l.Value);
+                        content.Append(l.ToString());                        
                     }
                 }
             }
 
-            return ret.ToString();
+            page.Text = text.ToString();
+            page.Content = content.ToString();
         }
 
         public void Concat(IList<string> files, string outputFile, bool deleteSource = false)

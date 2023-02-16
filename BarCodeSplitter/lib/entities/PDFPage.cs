@@ -14,6 +14,8 @@ namespace BarCodeSplitter.lib
 
         public string PNGFile { get; set; } 
         public string Text { get; set; }
+
+        public string Content { get; set; }
         public float ProcessElaspedTime { get; set; }
 
         public string Hash { get; set; }    
