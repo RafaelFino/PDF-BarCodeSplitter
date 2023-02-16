@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -192,18 +193,20 @@ namespace BarCodeSplitter.lib
                     {
                         config.FindBarCode = true;
                         config.GetAllText = true;
+                        config.CreateHash = false;
                         break;
                     }
                 case FileTypes.UPS:
                     {
                         config.FindBarCode = false;
                         config.GetAllText = true;
+                        config.CreateHash = true;
                         break;
                     }
             }
 
             return config;
-        }
+        }        
 
         private PDFFileResult ProcessUPS(PDFFile file)
         {
@@ -212,7 +215,7 @@ namespace BarCodeSplitter.lib
 
             foreach (var page in file.Pages.OrderBy(p => p.PageNumber))
             {
-                if (!processed.Contains(page.MakeHash()))
+                if (!processed.Contains(page.Hash))
                 {
                     var data = string.Join("", page.Text).ToUpper();
                     if (!data.Contains("INVOICE"))
@@ -226,11 +229,11 @@ namespace BarCodeSplitter.lib
                         ret.Paper.Add(page.PageFile);
                     }                    
 
-                    processed.Add(page.MakeHash());
+                    processed.Add(page.Hash);
                 }
                 else
                 {
-                    Log($"[{FileTypes.UPS}] {Path.GetFileNameWithoutExtension(file.FileSource)} ({Path.GetFileNameWithoutExtension(page.PageFile)}) already included, will be ignored to {FileTypes.UPS}", LogLevel.Debug);
+                    Log($"[{FileTypes.UPS}] {Path.GetFileNameWithoutExtension(file.FileSource)} ({Path.GetFileNameWithoutExtension(page.PageFile)}) already included, will be ignored to {FileTypes.UPS} HASH: {page.Hash}", LogLevel.Info);
                 }
 
                 ret.Processed++;

@@ -10,11 +10,12 @@ namespace BarCodeSplitter.lib.entities
     {
         Started = 0,
         Splitting = 1,
-        SearchingBarCode = 2,
-        SearchingText = 3,
-        ProcessingFileType = 4,
-        CreatingSummary = 5,
-        Done = 6
+        CreatingPNGFile = 2,
+        SearchingBarCode = 3,
+        SearchingText = 4,
+        ProcessingFileType = 5,
+        CreatingSummary = 6,
+        Done = 7
     }
 
     public class ItemProcess

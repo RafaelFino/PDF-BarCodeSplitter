@@ -9,6 +9,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using UglyToad.PdfPig.Content;
 using ZXing;
 
@@ -16,7 +19,8 @@ namespace BarCodeSplitter.lib
 {
     public partial class PDFToolKit
     {
-        private MagickReadSettings _readSettings = new MagickReadSettings() { Density = new Density(300) };
+        private readonly MagickReadSettings _readSettings = new MagickReadSettings() { Density = new Density(300) };
+        private readonly MagickReadSettings _readHashSettings = new MagickReadSettings() { Density = new Density(100) };
 
         protected virtual void Log(LogMsg msg)
         {
@@ -48,9 +52,19 @@ namespace BarCodeSplitter.lib
 
                     if (config.FindBarCode)
                     {
+                        Log($"[Analyze] Creating a PNG file {page.PageFile}");
+                        StatusManager.GetInstance.UpdateStatus(filename, ItemStatus.CreatingPNGFile);
+                        page.PNGFile = GeneratePNGFile(page.PageFile, page.PageNumber, config.FindBarCode);
+
                         StatusManager.GetInstance.UpdateStatus(filename, ItemStatus.SearchingBarCode);
-                        Log($"[Analyze] Searching for a bar code {page.PageFile}");
-                        page.Code = FindBarCode(page.PageFile, page.PageNumber);
+                        Log($"[Analyze] Searching for a bar code {page.PNGFile}");
+                        page.Code = SearchBarCode(page.PNGFile);
+
+                        if (File.Exists(page.PNGFile))
+                        {
+                            File.Delete(page.PNGFile);
+                            Log($"[Analyze] Removing temp PNG file {page.PNGFile}");
+                        }
                     }
 
                     if (config.GetAllText)
@@ -58,6 +72,12 @@ namespace BarCodeSplitter.lib
                         StatusManager.GetInstance.UpdateStatus(filename, ItemStatus.SearchingText);
                         Log($"[Analyze] Trying to extractg text from {page.PageFile}");
                         page.Text = GetText(page.PageFile);
+                    }
+
+                    if (config.CreateHash)
+                    {
+                        Log($"[Analyze] Creating a Hash based on PDF image {page.PageFile}");
+                        page.Hash = MakeTextHash(page);
                     }
 
                     pages.Add(page);
@@ -128,8 +148,11 @@ namespace BarCodeSplitter.lib
                 {
                     PdfDocument outputDocument = CreateDocument();
                     outputDocument.Version = inputDocument.Version;
-                    outputDocument.Info.Title = $"Page {idx + 1}/{inputDocument.PageCount} of {inputDocument.Info.Title}";
+
+                    outputDocument.Info.Title = inputDocument.Info.Title;
                     outputDocument.Info.Creator = inputDocument.Info.Creator;
+                    outputDocument.Info.CreationDate = inputDocument.Info.CreationDate;
+                    outputDocument.Info.ModificationDate = inputDocument.Info.ModificationDate;
 
                     outputDocument.AddPage(inputDocument.Pages[idx]);
 
@@ -163,21 +186,19 @@ namespace BarCodeSplitter.lib
             return document;
         }        
 
-        private BarCode FindBarCode(string pageFile, int page)
-        {
-            var sw = Stopwatch.StartNew();
-            BarCode ret = null;
+        private string GeneratePNGFile(string pageFile, int page, bool findBarCode = true)
+        {            
             var pngFile = $"{pageFile}.png";
 
             if (!File.Exists(pageFile))
             {
-                Log($"[FindBarCode] Fail to open PDF Page {pageFile}", LogLevel.Error);
+                Log($"[GeneratePNGFile] Fail to open PDF Page {pageFile}", LogLevel.Error);
                 throw new FileNotFoundException(pageFile);
             }
 
             if (File.Exists(pngFile))
             {
-                Log($"[FindBarCode] PNG temp file {pngFile} already exists, deleting before write a new", LogLevel.Error);
+                Log($"[GeneratePNGFile] PNG temp file {pngFile} already exists, deleting before write a new", LogLevel.Error);
                 File.Delete(pngFile);
             }            
 
@@ -187,37 +208,65 @@ namespace BarCodeSplitter.lib
 
                 if (!File.Exists(pngFile))
                 {
-                    Log($"[FindBarCode] Fail to write and open PNG file {pngFile}", LogLevel.Error);
+                    Log($"[GeneratePNGFile] Fail to write and open PNG file {pngFile}", LogLevel.Error);
                     throw new FileNotFoundException(pngFile);
-                }
-
-                IBarcodeReader reader = new BarcodeReader();
-                using (var barcodeBitmap = (Bitmap)Image.FromFile(pngFile))
-                {
-                    var result = reader.Decode(barcodeBitmap);
-
-                    if (result != null)
-                    {
-                        sw.Stop();
-                        ret = new BarCode
-                        {
-                            CodeType = result.BarcodeFormat.ToString(),
-                            Value = result.Text,
-                            ProcessElapsedTime = sw.ElapsedMilliseconds
-                        };
-
-                        Log($"[FindBarCode] Found codes on {pageFile}-> Code: {ret.CodeType} Value: {ret.Value}");
-                    }
-                }
-
-                if (File.Exists(pngFile))
-                {
-                    Log($"[FindBarCode] Removing temp file {pngFile}");
-                    File.Delete(pngFile);
                 }
             }
 
-            return ret;
+            return pngFile;
+        }
+
+        private BarCode SearchBarCode(string pngFile)
+        {
+            var sw = Stopwatch.StartNew();
+            IBarcodeReader reader = new BarcodeReader();
+            using (var barcodeBitmap = (Bitmap)Image.FromFile(pngFile))
+            {                
+                var result = reader.Decode(barcodeBitmap);
+
+                if (result != null)
+                {
+                    Log($"[SearchBarCode] Found bar code on {pngFile} -> Type {result.BarcodeFormat}: {result.Text}", LogLevel.Debug);
+                    sw.Stop();  
+                    return new BarCode
+                    {
+                        CodeType = result.BarcodeFormat.ToString(),
+                        Value = result.Text,
+                        ProcessElapsedTime = sw.ElapsedMilliseconds
+                    };                    
+                }
+            }
+
+            return null;
+        }
+
+        private static readonly SHA1 _sha = SHA1.Create();
+
+        public string MakeTextHash(PDFPage page)
+        {
+            var content = string.IsNullOrEmpty(page.Text) ? page.ToString() : page.Text;
+            
+            return Convert.ToBase64String(_sha.ComputeHash(Encoding.UTF8.GetBytes(content)));
+        }
+        public string MakeFileHash(string file)
+        {
+            var sw = Stopwatch.StartNew();
+            var hash = file;
+
+            if (File.Exists(file))
+            {
+                using (var image = new MagickImage(file, _readHashSettings))
+                {
+                    var content = image.ToByteArray();
+                    var byteHash = _sha.ComputeHash(content);
+                    hash = Convert.ToBase64String(byteHash);
+                }                
+            }
+
+            sw.Stop(); 
+            Log($"[MakeFileHash] File hash from {file} generated: {hash} in {sw.ElapsedMilliseconds} ms", LogLevel.Debug);
+
+            return hash;
         }
 
         private static readonly JsonSerializerSettings _options = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
@@ -235,19 +284,20 @@ namespace BarCodeSplitter.lib
         }
         private string GetText(string filename)
         {
-            var ret = new List<string>();
+            var ret = new StringBuilder();  
+
             using (var document = UglyToad.PdfPig.PdfDocument.Open(filename))
             {
-                foreach (Page page in document.GetPages())
+                foreach (var page in document.GetPages())
                 {
-                    foreach (var item in page.Letters)
+                    foreach (var l in page.Letters)
                     {
-                        ret.Add(item.Value);
+                        ret.Append(l.ToString());   
                     }
                 }
             }
 
-            return string.Join(string.Empty, ret);
+            return ret.ToString();
         }
 
         public void Concat(IList<string> files, string outputFile, bool deleteSource = false)

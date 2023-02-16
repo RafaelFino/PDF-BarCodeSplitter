@@ -1,4 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace BarCodeSplitter.lib
 {
@@ -7,26 +11,16 @@ namespace BarCodeSplitter.lib
         public BarCode Code { get; set; }
         public int PageNumber { get; set; }
         public string PageFile { get; set; }
+
+        public string PNGFile { get; set; } 
         public string Text { get; set; }
         public float ProcessElaspedTime { get; set; }
 
+        public string Hash { get; set; }    
+
         public override string ToString()
         {
-            return $"File: {PageNumber}|Code: {Code}|Text: {Text}";
-        }
-
-        public string MakeHash()
-        {
-            var codeHash = string.Empty;
-            
-            if (Code != null)
-            {
-                codeHash = Code.Value + Code.CodeType;
-            }
-
-            FileInfo fi = new FileInfo(PageFile);
-
-            return fi.Length.ToString() + Text + codeHash;
+            return $"File: {PageFile}:{PageNumber}|Code: {Code}|Text: {Text}";
         }
     }
 }
