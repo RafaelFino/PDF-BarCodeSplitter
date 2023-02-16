@@ -39,6 +39,17 @@ namespace BarCodeSplitter.lib
 "▓▓▓▓▓▓█████░░░░░░░░░█░░" + Environment.NewLine +
 "██████▀░░░░▀▀██████▀░░░░" + Environment.NewLine;
 
+        private string _finishFileIcon = Environment.NewLine +
+"  ___________            ___________       ___________       ___________ " + Environment.NewLine +
+" | PDF Input |          | THERMAL   |     | INVOICE   |     | IGNORED   |" + Environment.NewLine +
+" | {0:0000}      |          | {1:0000}      |     | {2:0000}      |     | {3:0000}      |" + Environment.NewLine +
+" |           |    =>    |           |  +  |           |  +  |           |" + Environment.NewLine +
+" |           |          | |[]|||[]  |     | J. Doe    |     |           |" + Environment.NewLine +
+" |           |          | XX-XXX-X  |     | $$$       |     |           |" + Environment.NewLine +
+" |___________|          |___________|     |___________|     |___________|";
+                                 
+                                              
+              
         public void RunBatch(string input, FileTypes fileType)
         {
             try
@@ -174,6 +185,7 @@ namespace BarCodeSplitter.lib
             //Check page count
             var pageCount = _pdftk.CountPages(file.FileSource);
             var processedCount = result.Processed;
+            var ignored = pageCount - (result.Thermal.Count + result.Paper.Count);
 
             if (pageCount != processedCount)
             {
@@ -181,6 +193,8 @@ namespace BarCodeSplitter.lib
                 Log(errorMsg, LogLevel.Error);
                 throw new Exception(errorMsg);
             }
+
+            Log($"[{fileType}] Delivered {outputPaperFile}{string.Format(_finishFileIcon, pageCount, result.Thermal.Count, result.Paper.Count, ignored)}", LogLevel.Info);            
         }
 
         private PDFAnalyzeConfig CreateConfig(FileTypes fileType)
