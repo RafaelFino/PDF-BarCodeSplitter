@@ -70,14 +70,14 @@ namespace BarCodeSplitter.lib
                     if (config.GetAllText)
                     {
                         StatusManager.GetInstance.UpdateStatus(filename, ItemStatus.SearchingText);
-                        Log($"[Analyze] Trying to extractg text from {page.PageFile}");
+                        Log($"[Analyze] Trying to extract text from {page.PageFile}");
                         GetText(ref page);
                     }
 
                     if (config.CreateHash)
                     {
-                        Log($"[Analyze] Creating a Hash based on PDF image {page.PageFile}");
                         page.Hash = MakeTextHash(page);
+                        Log($"[Analyze] Hash created from PDF objects {page.PageFile} HASH: {page.Hash}");
                     }
 
                     pages.Add(page);
@@ -88,7 +88,7 @@ namespace BarCodeSplitter.lib
 
                 sw.Stop();
                 ret.ProcessElaspedTime = sw.ElapsedMilliseconds;
-                ret.Pages = new ConcurrentBag<PDFPage>(pages);  
+                ret.Pages = new ConcurrentBag<PDFPage>(pages);
             }
             catch (Exception ex)
             {
@@ -119,7 +119,7 @@ namespace BarCodeSplitter.lib
             using (PdfDocument inputDocument = PdfReader.Open(filename, PdfDocumentOpenMode.Import))
             {
                 if (!Directory.Exists(outputPath))
-                {                    
+                {
                     Directory.CreateDirectory(outputPath);
                 }
 
@@ -184,10 +184,10 @@ namespace BarCodeSplitter.lib
             document.Options.CompressContentStreams = true;
 
             return document;
-        }        
+        }
 
         private string GeneratePNGFile(string pageFile, int page, bool findBarCode = true)
-        {            
+        {
             var pngFile = $"{pageFile}.png";
 
             if (!File.Exists(pageFile))
@@ -200,7 +200,7 @@ namespace BarCodeSplitter.lib
             {
                 Log($"[GeneratePNGFile] PNG temp file {pngFile} already exists, deleting before write a new", LogLevel.Error);
                 File.Delete(pngFile);
-            }            
+            }
 
             using (var image = new MagickImage(pageFile, _readSettings))
             {
@@ -221,19 +221,19 @@ namespace BarCodeSplitter.lib
             var sw = Stopwatch.StartNew();
             IBarcodeReader reader = new BarcodeReader();
             using (var barcodeBitmap = (Bitmap)Image.FromFile(pngFile))
-            {                
+            {
                 var result = reader.Decode(barcodeBitmap);
 
                 if (result != null)
                 {
                     Log($"[SearchBarCode] Found bar code on {pngFile} -> Type {result.BarcodeFormat}: {result.Text}", LogLevel.Debug);
-                    sw.Stop();  
+                    sw.Stop();
                     return new BarCode
                     {
                         CodeType = result.BarcodeFormat.ToString(),
                         Value = result.Text,
                         ProcessElapsedTime = sw.ElapsedMilliseconds
-                    };                    
+                    };
                 }
             }
 
@@ -243,11 +243,11 @@ namespace BarCodeSplitter.lib
         public string MakeTextHash(PDFPage page)
         {
             var content = string.IsNullOrEmpty(page.Content) ? page.ToString() : page.Content;
-            
-            using(var sha = SHA1.Create())
+
+            using (var sha = SHA1.Create())
             {
                 return Convert.ToBase64String(sha.ComputeHash(Encoding.UTF8.GetBytes(content)));
-            }            
+            }
         }
 
         private static readonly JsonSerializerSettings _options = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
@@ -261,7 +261,7 @@ namespace BarCodeSplitter.lib
             if (writeJsonReport)
             {
                 File.WriteAllText($"{outputPath}\\{Path.GetFileNameWithoutExtension(data.FileSource)}.json", jsonString);
-            }            
+            }
         }
         private void GetText(ref PDFPage page)
         {
@@ -276,7 +276,7 @@ namespace BarCodeSplitter.lib
                     {
                         text.Append(l.Value);
                         content.Append(l.Value);
-                        content.Append(l.ToString());                        
+                        content.Append(l.ToString());
                     }
                 }
             }

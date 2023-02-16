@@ -24,7 +24,7 @@ namespace BarCodeSplitter.lib
 
         private readonly HashSet<TaskStatus> _runningStatus = new HashSet<TaskStatus>() { TaskStatus.Running, TaskStatus.WaitingToRun };
 
-        private string _fisinhIcon = Environment.NewLine +
+        private readonly string _fisinhIcon = Environment.NewLine +
 "░░░░░░░░░░░░▄▄░░░░░░░░░" + Environment.NewLine +
 "░░░░░░░░░░░█░░█░░░░░░░░" + Environment.NewLine +
 "░░░░░░░░░░░█░░█░░░░░░░░" + Environment.NewLine +
@@ -39,22 +39,22 @@ namespace BarCodeSplitter.lib
 "▓▓▓▓▓▓█████░░░░░░░░░█░░" + Environment.NewLine +
 "██████▀░░░░▀▀██████▀░░░░" + Environment.NewLine;
 
-        private string _finishFileIcon = Environment.NewLine +
+        private readonly string _finishFileIcon = Environment.NewLine +
 "  ___________            ___________       ___________       ___________ " + Environment.NewLine +
 " | PDF Input |          | THERMAL   |     | INVOICE   |     | IGNORED   |" + Environment.NewLine +
 " | {0:0000}      |          | {1:0000}      |     | {2:0000}      |     | {3:0000}      |" + Environment.NewLine +
 " |           |    =>    |           |  +  |           |  +  |           |" + Environment.NewLine +
-" |           |          | |[]|||[]  |     | J. Doe    |     |           |" + Environment.NewLine +
-" |           |          | XX-XXX-X  |     | $$$       |     |           |" + Environment.NewLine +
-" |___________|          |___________|     |___________|     |___________|";
-                                 
-                                              
-              
+" | ???????   |          | |[]|||[]  |     | J. Doe    |     | XXXXXXX   |" + Environment.NewLine +
+" | ???????   |          | XX-XXX-X  |     | $$$       |     | XXXXXXX   |" + Environment.NewLine +
+" |___________|          |___________|     |___________|     |___________|" + Environment.NewLine;
+
+
+
         public void RunBatch(string input, FileTypes fileType)
         {
             try
             {
-                
+
                 var sw = Stopwatch.StartNew();
                 Log($"Batch start for {input}", LogLevel.Info);
 
@@ -194,7 +194,7 @@ namespace BarCodeSplitter.lib
                 throw new Exception(errorMsg);
             }
 
-            Log($"[{fileType}] Delivered {outputPaperFile}{string.Format(_finishFileIcon, pageCount, result.Thermal.Count, result.Paper.Count, ignored)}", LogLevel.Info);            
+            Log($"[{fileType}] Delivered {outputPaperFile}{string.Format(_finishFileIcon, pageCount, result.Thermal.Count, result.Paper.Count, ignored)}", LogLevel.Info);
         }
 
         private PDFAnalyzeConfig CreateConfig(FileTypes fileType)
@@ -220,7 +220,7 @@ namespace BarCodeSplitter.lib
             }
 
             return config;
-        }        
+        }
 
         private PDFFileResult ProcessUPS(PDFFile file)
         {
@@ -235,13 +235,13 @@ namespace BarCodeSplitter.lib
                     if (data.Contains("INVOICE"))
                     {
                         Log($"[{FileTypes.UPS}] {page.PageFile} is PAPER", LogLevel.Debug);
-                        ret.Paper.Add(page.PageFile);                        
+                        ret.Paper.Add(page.PageFile);
                     }
                     else
                     {
                         Log($"[{FileTypes.UPS}] {page.PageFile} is THERMAL", LogLevel.Debug);
                         ret.Thermal.Add(page.PageFile);
-                    }                    
+                    }
 
                     processed.Add(page.Hash);
                 }
