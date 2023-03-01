@@ -61,8 +61,8 @@ namespace BarCodeSplitter.lib
                 if (Directory.Exists(input))
                 {
                     var results = new ConcurrentBag<Task>();
-                    var files = Directory.GetFiles(input, "*.pdf");
-                    Array.Sort(files);
+                    var files = Directory.GetFiles(input, "*.pdf").Select(f => NormalizeFileName(f)).OrderBy(n => n).ToArray();
+                    //Array.Sort(files);
 
                     foreach (var item in files)
                     {
@@ -95,6 +95,22 @@ namespace BarCodeSplitter.lib
             {
                 Logger.GetInstance.Log(new LogMsg { Source = "Delivery", Message = $"Error: {ex.ToString()}", Level = LogLevel.Error });
             }
+        }
+
+        private string NormalizeFileName(string filename)
+        {
+            var ret = $"{Path.GetDirectoryName(filename)}\\{Path.GetFileNameWithoutExtension(filename).Trim()}{Path.GetExtension(filename).Trim()}";
+            if (File.Exists(filename) && ret.Length != filename.Length)
+            {
+                Log($"[NormalizeFileName] Moving data from {filename} to {ret}", LogLevel.Debug);
+                if(File.Exists(ret))
+                {
+                    ret = $"{Path.GetDirectoryName(filename)}\\{Path.GetFileNameWithoutExtension(filename).Trim()}.{DateTime.Now.Ticks}{Path.GetExtension(filename).Trim()}";
+                }
+                File.Move(filename, ret);
+            }
+
+            return ret;
         }
 
         public PDFFile RunFile(string input, string item, FileTypes fileType)

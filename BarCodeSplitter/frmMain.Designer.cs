@@ -147,7 +147,7 @@
             this.MinimumSize = new System.Drawing.Size(1100, 600);
             this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "PDF Splitter";
+            this.Text = "PDF Splitter - v1.13";
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();
             this.ResumeLayout(false);

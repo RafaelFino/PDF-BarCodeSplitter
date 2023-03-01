@@ -37,7 +37,7 @@ namespace BarCodeSplitter.lib
             var pages = new List<PDFPage>();
 
             try
-            {
+            {                
                 StatusManager.GetInstance.UpdateStatus(filename, ItemStatus.Splitting);
                 var files = Split(filename, $"{Path.GetTempPath()}PDFBarCodeSplitter");
 
